@@ -2,7 +2,6 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CustomerController;
-use App\Http\Controllers\DetailPreventiveController;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\FormFPPController;
 use App\Http\Controllers\HandlingController;
@@ -35,8 +34,6 @@ Route::resource('receivedfpps', FormFPPController::class);
 Route::resource('approvedfpps', FormFPPController::class);
 Route::resource('tindaklanjuts', FormFPPController::class);
 Route::resource('preventives', PreventiveController::class);
-Route::resource('detailpreventive', DetailPreventiveController::class);
-Route::resource('events', EventController::class);
 Route::resource('spareparts', SparepartController::class);
 
 Route::get('/', [AuthController::class, 'showLoginForm'])->name('login');
@@ -99,11 +96,6 @@ Route::middleware(['web', 'auth'])->group(function () {
     Route::get('dashboardgamesin', [MesinController::class, 'dashboardGAMesin'])->name('dashboardgamesin');
     Route::get('/mesins/showMesinGA/{mesin}', [MesinController::class, 'showMesinGA'])->name('mesins.showMesinGA');
 
-    Route::put('mesins/{mesin}/update-issue', [DetailPreventiveController::class, 'updateIssue'])
-        ->name('detailpreventives.updateIssue');
-    Route::put('mesins/{mesin}/update-perbaikan', [DetailPreventiveController::class, 'updatePerbaikan'])
-        ->name('detailpreventives.updatePerbaikan');
-
     // Dept Maintenance
     Route::get('dashboarddeptmtce', [FormFPPController::class, 'DashboardDeptMTCE'])
         ->name('deptmtce.index');
@@ -135,6 +127,7 @@ Route::middleware(['web', 'auth'])->group(function () {
     Route::get('download-excel/{tindaklanjut}', [FormFPPController::class, 'downloadAttachment'])->name('download.attachment');
     // DashboardforALL
     Route::get('/dashboardHandling', 'App\Http\Controllers\DsController@dashboardHandling')->name('dashboardHandling');
+    Route::get('/dashboardMaintenance', 'App\Http\Controllers\DsController@dashboardMaintenance')->name('dashboardMaintenance');
     Route::get('/dshandling', 'App\Http\Controllers\DsController@dshandling')->name('dshandling');
     Route::get('/getChartData', 'App\Http\Controllers\HandlingController@getChartData')->name('getChartData');
     Route::get('/get-data-by-year', 'App\Http\Controllers\HandlingController@getDataByYear')->name('getDataByYear');

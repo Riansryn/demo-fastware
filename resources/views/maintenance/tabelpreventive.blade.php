@@ -8,7 +8,7 @@
                 <div class="card">
                     <div class="card-body d-flex justify-content-between align-items-center">
                         <div>
-                            <h5 class="card-title">Tabel Preventif Departemen Maintenance</h5>
+                            <h5 class="card-title">Tabel Preventif User Maintenance</h5>
                         </div>
                     </div>
                 </div>

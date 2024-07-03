@@ -91,11 +91,15 @@ class PreventiveController extends Controller
         // Ambil detail preventive berdasarkan nomor mesin dan jadwal rencana dari preventive
         $issues = $detailpreventive->where('nomor_mesin', $preventive->nomor_mesin)
             ->where('jadwal_rencana', $preventive->jadwal_rencana)
+            ->whereMonth('created_at', now()->month)
+            ->whereYear('created_at', now()->year)
             ->pluck('issue')
             ->toArray();
 
         $checkedIssues = $detailpreventive->where('nomor_mesin', $preventive->nomor_mesin)
             ->where('jadwal_rencana', $preventive->jadwal_rencana)
+            ->whereMonth('created_at', now()->month)
+            ->whereYear('created_at', now()->year)
             ->pluck('issue_checked')
             ->toArray();
 
@@ -107,16 +111,21 @@ class PreventiveController extends Controller
         return view('deptmtce.lihatpreventive', compact('preventive', 'issues', 'mesins', 'checkedIssues', 'selected_mesin_nomor'));
     }
 
+
     public function editIssue(JadwalPreventif $preventive, Mesin $mesin, DetailPreventive $detailpreventive)
     {
         // Ambil detail preventive berdasarkan nomor mesin dan jadwal rencana dari preventive
         $issues = $detailpreventive->where('nomor_mesin', $preventive->nomor_mesin)
             ->where('jadwal_rencana', $preventive->jadwal_rencana)
+            ->whereMonth('created_at', now()->month)
+            ->whereYear('created_at', now()->year)
             ->pluck('issue')
             ->toArray();
 
         $checkedIssues = $detailpreventive->where('nomor_mesin', $preventive->nomor_mesin)
             ->where('jadwal_rencana', $preventive->jadwal_rencana)
+            ->whereMonth('created_at', now()->month)
+            ->whereYear('created_at', now()->year)
             ->pluck('issue_checked')
             ->toArray();
 
@@ -142,6 +151,7 @@ class PreventiveController extends Controller
         }
     }
 
+
     public function updateIssue(Request $request, JadwalPreventif $preventive, DetailPreventive $detailPreventive): RedirectResponse
     {
         // Ambil semua nilai issue dan perbaikan dari request
@@ -153,9 +163,10 @@ class PreventiveController extends Controller
             // Cek apakah issue saat ini sudah diceklis atau tidak
             $isChecked = in_array($key, $checkedIssues);
 
-            // Cari jika ada detail preventive sebelumnya dengan issue yang sama
+            // Cari jika ada detail preventive sebelumnya dengan issue yang sama berdasarkan nomor mesin dan jadwal rencana
             $existingDetailPreventive = DetailPreventive::where('nomor_mesin', $preventive->nomor_mesin)
                 ->where('issue', $issue)
+                ->where('jadwal_rencana', $preventive->jadwal_rencana)
                 ->first();
 
             if ($existingDetailPreventive) {
@@ -168,7 +179,8 @@ class PreventiveController extends Controller
                 DetailPreventive::create([
                     'nomor_mesin' => $preventive->nomor_mesin,
                     'issue' => $issue,
-                    'issue_checked' => $isChecked ? '1' : '0'
+                    'issue_checked' => $isChecked ? '1' : '0',
+                    'jadwal_rencana' => $preventive->jadwal_rencana // tambahkan jadwal_rencana
                 ]);
             }
         }
@@ -189,9 +201,13 @@ class PreventiveController extends Controller
                 'status' => 0
             ]);
         }
+
         // Redirect atau response sesuai kebutuhan Anda
         return redirect()->route('dashboardPreventiveMaintenance');
     }
+
+
+
 
 
 

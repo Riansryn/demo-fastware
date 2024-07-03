@@ -7,7 +7,7 @@
     <main id="main" class="main">
 
         <div class="pagetitle">
-            <h1>Departemen Maintenance</h1>
+            <h1>User Maintenance</h1>
             <nav>
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item">Tabel Preventif</li>

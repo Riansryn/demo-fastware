@@ -147,7 +147,7 @@
                                 Auth::user()->role_id == 30 ||
                                 Auth::user()->role_id == 31)
                             <li>
-                                <a class="nav-link collapsed" href="{{ route('dashboardHandling') }}">
+                                <a class="nav-link collapsed" href="{{ route('dashboardMaintenance') }}">
                                     <i class="bi bi-bar-chart-line-fill fs-6"></i>
                                     <span>Maintenance</span>
                                 </a>
