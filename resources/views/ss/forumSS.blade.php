@@ -34,7 +34,7 @@
                         <!-- First Place -->
                         @if ($data->count() > 0)
                             <div class="col-12 col-md-4 mb-4 post-item" data-likes="{{ $data[0]->suka }}"
-                                data-date="{{ $data[0]->tgl_pengajuan }}" data-title="{{ strtolower($data[0]->judul) }}"
+                                data-date="{{ $data[0]->tgl_pengajuan_ide }}" data-title="{{ strtolower($data[0]->judul) }}"
                                 data-user="{{ strtolower($data[0]->user->name) }}">
                                 <div class="card position-relative"
                                     style="background: linear-gradient(to right, #f35129, #6b51ff);">
@@ -48,8 +48,7 @@
                                                 style="width: 50px; height: 50px;">
                                             <div>
                                                 <h6 class="mb-0">{{ $data[0]->user->name }}</h6>
-                                                <small
-                                                    class="text-muted">{{ \Carbon\Carbon::parse($data[0]->tgl_pengajuan)->diffForHumans() }}</small>
+                                                <small class="text-muted">{{ \Carbon\Carbon::parse($data[0]->tgl_pengajuan_ide)->diffForHumans() }}</small>
                                             </div>
                                         </div>
                                         <p class="mb-4">{{ $data[0]->judul }}</p>

@@ -431,6 +431,7 @@
                             Auth::user()->role_id == 9 ||
                             Auth::user()->role_id == 12 ||
                             Auth::user()->role_id == 14 ||
+                            Auth::user()->role_id == 22 ||
                             Auth::user()->role_id == 30 ||
                             Auth::user()->role_id == 31 ||
                             Auth::user()->role_id == 16)
@@ -448,6 +449,7 @@
                             Auth::user()->role_id == 7 ||
                             Auth::user()->role_id == 9 ||
                             Auth::user()->role_id == 11 ||
+                            Auth::user()->role_id == 12 ||
                             Auth::user()->role_id == 14 ||
                             Auth::user()->role_id == 22 ||
                             Auth::user()->role_id == 30 ||
@@ -487,6 +489,7 @@
                     @endif
                     @if (Auth::user()->role_id == 1 ||
                             Auth::user()->role_id == 14 ||
+                            Auth::user()->role_id == 15 ||
                             Auth::user()->role_id == 16 ||
                             Auth::user()->role_id == 20)
                         <li class="nav-item">
