@@ -43,7 +43,7 @@ class FormFPP extends Model
             case '1':
                 return 'orange'; // Mengubah warna menjadi 'orange' untuk status 1 (On Progress)
             case '2':
-                return 'blue'; // Mengubah warna menjadi 'blue' untuk status 2 (Finish)
+                return 'cyan'; // Mengubah warna menjadi 'blue' untuk status 2 (Finish)
             case '3':
                 return 'green'; // Mengubah warna menjadi 'black' untuk status 3 (Closed)
             default:
