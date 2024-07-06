@@ -136,6 +136,7 @@ Route::middleware(['web', 'auth'])->group(function () {
     Route::get('/api/FilterPieChartProses', 'App\Http\Controllers\HandlingController@FilterPieChartProses')->name('FilterPieChartProses');
     Route::get('/api/filterPieChartNG', [HandlingController::class, 'filterPieChartNG'])->name('filterPieChartNG');
     Route::get('/api/getChartStatusHandling', 'App\Http\Controllers\HandlingController@getChartStatusHandling')->name('getChartStatusHandling');
+    Route::get('/export-handlings', 'App\Http\Controllers\HandlingController@export')->name('export.handlings');
 
     // Grafik Repair Maintenance
     Route::get('/getRepairMaintenance', 'App\Http\Controllers\MaintenanceController@getRepairMaintenance')->name('getRepairMaintenance');

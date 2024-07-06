@@ -453,17 +453,22 @@
                                                         @endif
                                                     </td>
                                                     <td class="text-center pt-3">
-                                                        @if (in_array(pathinfo($row->file, PATHINFO_EXTENSION), ['pdf', 'pptx', 'ppt']))
+                                                        @if (pathinfo($row->file, PATHINFO_EXTENSION) == 'pdf')
                                                             <a href="{{ asset('assets/image/' . $row->file) }}"
-                                                                download="{{ $row->file_name }}">
+                                                                target="_blank">
                                                                 <i class="fas fa-file-pdf fs-4"></i>
                                                             </a>
-                                                        @elseif(in_array(pathinfo($row->file, PATHINFO_EXTENSION), ['xlsx', 'xls']))
+                                                        @elseif (in_array(pathinfo($row->file, PATHINFO_EXTENSION), ['ppt', 'pptx']))
+                                                            <a href="{{ asset('assets/image/' . $row->file) }}"
+                                                                download="{{ $row->file_name }}">
+                                                                <i class="fas fa-file-powerpoint fs-4"></i>
+                                                            </a>
+                                                        @elseif (in_array(pathinfo($row->file, PATHINFO_EXTENSION), ['xlsx', 'xls']))
                                                             <a href="{{ asset('assets/image/' . $row->file) }}"
                                                                 download="{{ $row->file_name }}">
                                                                 <i class="fas fa-file-excel fs-4"></i>
                                                             </a>
-                                                        @elseif(in_array(pathinfo($row->file, PATHINFO_EXTENSION), ['jpg', 'jpeg', 'png']))
+                                                        @elseif (in_array(pathinfo($row->file, PATHINFO_EXTENSION), ['jpg', 'jpeg', 'png']))
                                                             <a href="{{ asset('assets/image/' . $row->file) }}"
                                                                 download="{{ $row->file_name }}">
                                                                 <img src="{{ asset('assets/image/' . $row->file) }}"
@@ -532,28 +537,37 @@
             });
 
             function submitFollowUp(action) {
+                var formFollowUp = document.getElementById('formFollowUp');
+                var fileInput = document.getElementById('upload_file');
+                var maxFileSize = 15 * 1024 * 1024; // 15 MB
+
                 // Validasi berdasarkan tindakan
-                if (action === 'save') {
-                    if (!document.getElementById('pic').value.trim() || !document.getElementById('results').value.trim()) {
+                if (action === 'save' || action === 'claim') {
+                    if (!document.getElementById('pic').value.trim() || !document.getElementById('results').value.trim() ||
+                        (action === 'save' && fileInput.files.length === 0)) {
                         Swal.fire({
                             icon: 'error',
                             title: 'Gagal!',
-                            text: 'Silakan isi PIC dan Catatan Hasil sebelum menyimpan!',
+                            text: 'Silakan isi PIC, Catatan Hasil, dan Unggah File sebelum menyimpan!',
                         });
                         return;
                     }
-                } else if (action === 'claim') {
-                    if (!document.getElementById('pic').value.trim() || !document.getElementById('results').value.trim()) {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Gagal!',
-                            text: 'Silakan isi PIC dan Catatan Hasil sebelum mengklaim!',
-                        });
-                        return;
+
+                    // Validasi ukuran file maksimal 15 MB untuk tindakan save dan claim
+                    if (fileInput.files.length > 0) {
+                        var file = fileInput.files[0];
+                        if (file.size > maxFileSize) {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Gagal!',
+                                text: 'Ukuran file harus lebih kecil dari 15 MB!',
+                            });
+                            return;
+                        }
                     }
                 } else if (action === 'finish') {
                     if (!document.getElementById('pic').value.trim() || !document.getElementById('results').value.trim() ||
-                        document.getElementById('upload_file').files.length === 0) {
+                        fileInput.files.length === 0) {
                         Swal.fire({
                             icon: 'error',
                             title: 'Gagal!',
@@ -561,15 +575,26 @@
                         });
                         return;
                     }
+
+                    // Validasi ukuran file maksimal 15 MB untuk tindakan finish
+                    var file = fileInput.files[0];
+                    if (file.size > maxFileSize) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Gagal!',
+                            text: 'Ukuran file harus lebih kecil dari 15 MB!',
+                        });
+                        return;
+                    }
                 }
 
                 // Tambahkan action ke form data
-                var formData = new FormData(document.getElementById('formFollowUp'));
+                var formData = new FormData(formFollowUp);
                 formData.append('action', action);
 
                 // Kirim data ke server menggunakan AJAX
                 $.ajax({
-                    url: document.getElementById('formFollowUp').action,
+                    url: formFollowUp.action,
                     method: 'POST',
                     data: formData,
                     contentType: false,
@@ -590,23 +615,25 @@
                     },
                     error: function(xhr, status, error) {
                         // Kesalahan dari server
-                        // Bagian ini ditambahkan untuk menampilkan pesan kesalahan spesifik dari controller
                         var errorMessage = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message :
                             'Terjadi kesalahan saat menyimpan data!';
                         Swal.fire({
                             icon: 'error',
                             title: 'Gagal!',
-                            text: errorMessage, // Pesan kesalahan spesifik ditampilkan di sini
+                            text: errorMessage,
                         });
                     }
                 });
             }
 
+            //back page
+            var submissionUrl = '{{ route('submission') }}';
 
-            // Fungsi untuk kembali ke halaman sebelumnya
             function goToSubmission() {
-                // Kode untuk kembali ke halaman sebelumnya
+                // Redirect ke URL route
+                window.location.href = submissionUrl;
             }
+            //end
 
             function showModal(imageSrc) {
                 var modal = document.getElementById("imageModal");

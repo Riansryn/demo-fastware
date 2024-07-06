@@ -129,6 +129,25 @@
                                                     style="width: 100%; max-width: 200px;"></select>
                                                 <canvas id="myChart" style="height:24.5vh; width:100%"></canvas>
                                             </div>
+                                            <div class="row" style="margin-top: 5%">
+                                                <div class="col-md-3 mb-2">
+                                                    <label for="start_month">Bulan Mulai:</label>
+                                                    <input type="date" id="start_month5" name="start_month"
+                                                        class="form-control" onchange="validateDates5()">
+                                                </div>
+                                                <div class="col-md-3 mb-2">
+                                                    <label for="end_month">Bulan Akhir:</label>
+                                                    <input type="date" id="end_month5" name="end_month"
+                                                        class="form-control" onchange="validateDates5()">
+                                                </div>
+                                                <div class="col-md-2 mb-2">
+                                                    <label>&nbsp;</label> <!-- Label kosong untuk mengatur posisi tombol -->
+                                                    <button type="button" class="btn btn-success form-control"
+                                                        onclick="exportToExcel()">
+                                                        <i class="fas fa-file-excel"></i> Export ke Excel
+                                                    </button>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -141,14 +160,14 @@
                                                 <div class="col-md-6 mb-2">
                                                     <label for="start_periode">Bulan Mulai:</label>
                                                     <input type="date" id="start_periode" name="start_periode"
-                                                        class="form-control">
+                                                        class="form-control" onchange="validateDates()">
                                                 </div>
                                                 <div class="col-md-6 mb-2">
                                                     <label for="end_periode">Bulan Akhir:</label>
                                                     <input type="date" id="end_periode" name="end_periode"
-                                                        class="form-control">
+                                                        class="form-control" onchange="validateDates()">
                                                 </div>
-                                                <div id="chartAllPeriode" style="height:21.5vh; width:100%"></div>
+                                                <div id="chartAllPeriode" style="height:36.3vh; width:120%"></div>
                                             </div>
                                         </div>
                                     </div>
@@ -166,12 +185,12 @@
                                                 <div class="col-md-6 mb-2">
                                                     <label for="start_month">Bulan Mulai:</label>
                                                     <input type="date" id="start_month" name="start_month"
-                                                        class="form-control">
+                                                        class="form-control" onchange="validateDates2()">
                                                 </div>
                                                 <div class="col-md-6 mb-2">
                                                     <label for="end_month">Bulan Akhir:</label>
                                                     <input type="date" id="end_month" name="end_month"
-                                                        class="form-control">
+                                                        class="form-control" onchange="validateDates2()">
                                                 </div>
                                                 <div class="col-lg-6 mb-2">
                                                     <label for="jenis">Jenis:</label>
@@ -208,12 +227,12 @@
                                                 <div class="col-md-6 mb-2">
                                                     <label for="start_month3">Bulan Mulai:</label>
                                                     <input type="date" id="start_month3" name="start_month3"
-                                                        class="form-control">
+                                                        class="form-control" onchange="validateDates3()">
                                                 </div>
                                                 <div class="col-md-6 mb-2">
                                                     <label for="end_month3">Bulan Akhir:</label>
                                                     <input type="date" id="end_month3" name="end_month3"
-                                                        class="form-control">
+                                                        class="form-control" onchange="validateDates3()">
                                                 </div>
                                                 <div class="col-lg-6 mb-2">
                                                     <label for="jenis2">Jenis:</label>
@@ -254,12 +273,12 @@
                                                 <div class="col-md-6 mb-2">
                                                     <label for="start_month4">Bulan Mulai:</label>
                                                     <input type="date" id="start_month4" name="start_month4"
-                                                        class="form-control">
+                                                        class="form-control" onchange="validateDates4()">
                                                 </div>
                                                 <div class="col-md-6 mb-2">
                                                     <label for="end_month4">Bulan Akhir:</label>
                                                     <input type="date" id="end_month4" name="end_month4"
-                                                        class="form-control">
+                                                        class="form-control" onchange="validateDates4()">
                                                 </div>
                                                 <div class="col-lg-6 mb-2">
                                                     <label for="jenis3">Jenis:</label>
@@ -319,7 +338,145 @@
         <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
         <script src="https://code.highcharts.com/highcharts.js"></script>
         <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+        <!-- Tambahkan ini di dalam <head> atau sebelum </body> -->
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+        <script src="https://code.highcharts.com/modules/exporting.js"></script>
+        <script src="https://code.highcharts.com/modules/export-data.js"></script>
+        <script src="https://code.highcharts.com/modules/accessibility.js"></script>
+
         <script>
+            //export excel ds
+            function exportToExcel() {
+                var startMonth = document.getElementById('start_month5').value;
+                var endMonth = document.getElementById('end_month5').value;
+                if (startMonth && endMonth) {
+                    var url = "{{ route('export.handlings') }}";
+                    window.location.href = `${url}?start_month=${startMonth}&end_month=${endMonth}`;
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Tanggal Tidak Valid',
+                        text: 'Silakan pilih kedua tanggal!'
+                    });
+                }
+            }
+
+            //validasi bulan awal dan akhir
+            function validateDates() {
+                var startPeriode = document.getElementById('start_periode').value;
+                var endPeriode = document.getElementById('end_periode').value;
+
+                if (startPeriode && endPeriode) {
+                    var startDate = new Date(startPeriode);
+                    var endDate = new Date(endPeriode);
+
+                    if (endDate < startDate) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Tanggal Tidak Valid',
+                            text: 'Bulan Akhir tidak boleh kurang dari Bulan Mulai.',
+                            confirmButtonText: 'OK'
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                document.getElementById('end_periode').value = '';
+                            }
+                        });
+                    }
+                }
+            }
+
+            function validateDates2() {
+                var startPeriode = document.getElementById('start_month').value;
+                var endPeriode = document.getElementById('end_month').value;
+
+                if (startPeriode && endPeriode) {
+                    var startDate = new Date(startPeriode);
+                    var endDate = new Date(endPeriode);
+
+                    if (endDate < startDate) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Tanggal Tidak Valid',
+                            text: 'Bulan Akhir tidak boleh kurang dari Bulan Mulai.',
+                            confirmButtonText: 'OK'
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                document.getElementById('end_periode').value = '';
+                            }
+                        });
+                    }
+                }
+            }
+
+            function validateDates3() {
+                var startPeriode = document.getElementById('start_month3').value;
+                var endPeriode = document.getElementById('end_month3').value;
+
+                if (startPeriode && endPeriode) {
+                    var startDate = new Date(startPeriode);
+                    var endDate = new Date(endPeriode);
+
+                    if (endDate < startDate) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Tanggal Tidak Valid',
+                            text: 'Bulan Akhir tidak boleh kurang dari Bulan Mulai.',
+                            confirmButtonText: 'OK'
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                document.getElementById('end_periode').value = '';
+                            }
+                        });
+                    }
+                }
+            }
+
+            function validateDates4() {
+                var startPeriode = document.getElementById('start_month4').value;
+                var endPeriode = document.getElementById('end_month4').value;
+
+                if (startPeriode && endPeriode) {
+                    var startDate = new Date(startPeriode);
+                    var endDate = new Date(endPeriode);
+
+                    if (endDate < startDate) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Tanggal Tidak Valid',
+                            text: 'Bulan Akhir tidak boleh kurang dari Bulan Mulai.',
+                            confirmButtonText: 'OK'
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                document.getElementById('end_periode').value = '';
+                            }
+                        });
+                    }
+                }
+            }
+
+            function validateDates5() {
+                var startPeriode = document.getElementById('start_month5').value;
+                var endPeriode = document.getElementById('end_month5').value;
+
+                if (startPeriode && endPeriode) {
+                    var startDate = new Date(startPeriode);
+                    var endDate = new Date(endPeriode);
+
+                    if (endDate < startDate) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Tanggal Tidak Valid',
+                            text: 'Bulan Akhir tidak boleh kurang dari Bulan Mulai.',
+                            confirmButtonText: 'OK'
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                document.getElementById('end_periode').value = '';
+                            }
+                        });
+                    }
+                }
+            }
+
             document.addEventListener('DOMContentLoaded', function() {
                 // Mendapatkan elemen input tanggal
                 var startDateInput = document.getElementById('start_periode');
