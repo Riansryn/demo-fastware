@@ -1,6 +1,11 @@
 @extends('layout')
 
+<script src="https://code.jquery.com/jquery-1.11.0.min.js"></script>
 <script src="https://code.highcharts.com/highcharts.js"></script>
+<script src="https://code.highcharts.com/modules/exporting.js"></script>
+<script src="https://code.highcharts.com/modules/export-data.js"></script>
+<script src="https://code.highcharts.com/modules/accessibility.js"></script>
+
 @section('content')
     <main id="main" class="main">
 
@@ -183,10 +188,7 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="chart-container"
-                                style="position: relative; height: calc(100% - 10px); width: 100%;">
-                                <canvas id="periodeRepair" style="height: 100%;"></canvas>
-                            </div>
+                            <div id="periodeRepair" style="width: 100%; height: 400px;"></div>
                         </div>
                     </div>
                 </div>
@@ -274,10 +276,7 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="chart-container"
-                                style="position: relative; height: calc(100% - 10px); width: 100%;">
-                                <canvas id="periodeRepairAlat" style="height: 100%;"></canvas>
-                            </div>
+                            <div id="periodeRepairAlat" style="width: 100%; height: 400px;"></div>
                         </div>
                     </div>
                 </div>
@@ -314,13 +313,9 @@
                             </div>
                         </div>
                     </div>
-
-
                 </div>
-
         </section>
         <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-        <script src="https://code.highcharts.com/highcharts.js"></script>
         <script>
             // Data cutting chart
             var cuttingData = {!! $chartCutting !!};
@@ -863,29 +858,60 @@
                 updatePeriodeWaktuPengerjaan();
             }
 
-            /// Inisialisasi chart periode waktu pengerjaan dengan data default
-            var ctxPeriode = document.getElementById('periodeRepair').getContext('2d');
-            var periodeRepair = new Chart(ctxPeriode, {
-                type: 'bar',
-                data: {
-                    labels: ['Line Stop (Dalam Menit)'], // Label waktu pengerjaan saja
-                    datasets: [{
-                        label: 'Line Stop (Dalam menit)', // Label dataset
-                        data: [
-                            {!! json_encode($periodeWaktuPengerjaan) !!}
-                        ], // Data waktu pengerjaan akan diisi setelah permintaan AJAX berhasil
-                        backgroundColor: 'red', // Merah terang dengan opacity 0.6
-                        borderColor: 'rgba(255, 99, 132, 0.6)', // Merah terang tanpa opacity
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    scales: {
-                        y: {
-                            beginAtZero: true
+            // Inisialisasi chart periode waktu pengerjaan dengan data default
+            var periodeWaktuPengerjaan;
+
+            // Fungsi untuk membuat chart Highcharts untuk periodeRepair
+            function createPeriodeRepairChart(labels, data) {
+                return Highcharts.chart('periodeRepair', {
+                    chart: {
+                        type: 'bar'
+                    },
+                    title: {
+                        text: 'Line Stop (Dalam Menit)'
+                    },
+                    xAxis: {
+                        categories: labels
+                    },
+                    yAxis: {
+                        min: 0,
+                        title: {
+                            text: 'Waktu (menit)'
                         }
-                    }
-                }
+                    },
+                    credits: {
+                        enabled: false
+                    },
+                    series: [{
+                        name: 'Line Stop (Dalam Menit)',
+                        data: data,
+                        color: 'red' // Warna dataset
+                    }]
+                });
+            }
+
+            // Event handler untuk perubahan pada dropdown section
+            document.getElementById('section-dropdown').addEventListener('change', function() {
+                updateChart2();
+                updatePeriodeWaktuPengerjaan(); // Panggil fungsi untuk memperbarui periode waktu pengerjaan
+            });
+
+            // Event handler untuk perubahan pada dropdown tahun
+            document.getElementById('date-dropdown2').addEventListener('change', function() {
+                updateChart2();
+                updatePeriodeWaktuPengerjaan(); // Panggil fungsi untuk memperbarui periode waktu pengerjaan
+            });
+
+            // Event handler untuk perubahan pada dropdown bulan awal
+            document.getElementById('start_month2').addEventListener('change', function() {
+                updateChart2();
+                updatePeriodeWaktuPengerjaan(); // Panggil fungsi untuk memperbarui periode waktu pengerjaan
+            });
+
+            // Event handler untuk perubahan pada dropdown bulan akhir
+            document.getElementById('end_month2').addEventListener('change', function() {
+                updateChart2();
+                updatePeriodeWaktuPengerjaan(); // Panggil fungsi untuk memperbarui periode waktu pengerjaan
             });
 
             // Fungsi untuk memperbarui chart periode waktu pengerjaan
@@ -906,10 +932,71 @@
                         end_month2: endMonth
                     },
                     success: function(response) {
-                        // Perbarui data chart dengan data baru
-                        periodeRepair.data.datasets[0].data = [response.total_minute];
+                        // Log response untuk memastikan data yang diterima
+                        console.log('Data periode waktu pengerjaan:', response);
 
-                        // Tentukan warna berdasarkan bagian yang dipilih
+                        // Perbarui data chart dengan data baru
+                        if (periodeWaktuPengerjaan) {
+                            periodeWaktuPengerjaan.update({
+                                xAxis: {
+                                    categories: response.labels
+                                },
+                                series: [{
+                                    data: response.data2
+                                }]
+                            });
+                        } else {
+                            periodeWaktuPengerjaan = createPeriodeRepairChart(response.labels, response.data2);
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error(xhr.responseText);
+                        // Handle error here
+                    }
+                });
+            }
+        </script>
+
+        <!-- Repair Maintenance Alat Bantu -->
+        <script>
+            var repairAlatBantu;
+            var periodeWaktuAlat;
+
+            document.addEventListener('DOMContentLoaded', function() {
+                let dateDropdown = $('#date-dropdown-alat');
+                let currentYear = new Date().getFullYear();
+                let earliestYear = 2020;
+
+                while (currentYear >= earliestYear) {
+                    dateDropdown.append($('<option>', {
+                        text: currentYear,
+                        value: currentYear
+                    }));
+                    currentYear -= 1;
+                }
+
+                updateChartAlat();
+            });
+
+            $('#date-dropdown-alat, #section-dropdown-alat, #start_month_alat, #end_month_alat').on('change', function() {
+                updateChartAlat();
+            });
+
+            function updateChartAlat() {
+                var selectedYear = $('#date-dropdown-alat').val();
+                var selectedSection = $('#section-dropdown-alat').val();
+
+                $.ajax({
+                    url: '{{ route('getRepairAlatBantu') }}',
+                    method: 'GET',
+                    data: {
+                        year: selectedYear,
+                        section: selectedSection
+                    },
+                    success: function(response) {
+                        var labels = response.labels;
+                        var data2 = response.data2;
+
                         var color;
                         switch (selectedSection) {
                             case 'CUTTING':
@@ -925,106 +1012,7 @@
                                 color = '#27ae60';
                                 break;
                             default:
-                                color = 'darkgrey'; // Warna default jika tidak ada yang cocok
-                        }
-                        // Update warna dataset
-                        periodeRepair.data.datasets[0].backgroundColor = color;
-                        periodeRepair.data.datasets[0].borderColor = color;
-
-                        periodeRepair.update();
-                    },
-                    error: function(xhr, status, error) {
-                        console.error(xhr.responseText);
-                        // Handle error here
-                    }
-                });
-            }
-
-
-            // Event handler untuk perubahan pada dropdown section
-            document.getElementById('section-dropdown').addEventListener('change', function() {
-                updateChart2();
-                updatePeriodeWaktuPengerjaan(); // Panggil fungsi untuk memperbarui periode waktu pengerjaan
-            });
-
-            // Event handler untuk perubahan pada dropdown section
-            document.getElementById('date-dropdown2').addEventListener('change', function() {
-                updateChart2();
-                updatePeriodeWaktuPengerjaan(); // Panggil fungsi untuk memperbarui periode waktu pengerjaan
-            });
-
-
-            document.getElementById('start_month2').addEventListener('change', function() {
-                updateChart2();
-                updatePeriodeWaktuPengerjaan(); // Panggil fungsi untuk memperbarui periode waktu pengerjaan
-            });
-
-            document.getElementById('end_month2').addEventListener('change', function() {
-                updateChart2();
-                updatePeriodeWaktuPengerjaan(); // Panggil fungsi untuk memperbarui periode waktu pengerjaan
-            });
-        </script>
-
-        <!-- Repair Maintenance Alat Bantu -->
-        <script>
-            // Inisialisasi chart dengan data default
-            var repairAlatBantu;
-
-            // Inisialisasi dropdown tahun saat halaman dimuat
-            document.addEventListener('DOMContentLoaded', function() {
-                let dateDropdown = document.getElementById('date-dropdown-alat');
-                let currentYear = new Date().getFullYear();
-                let earliestYear = 2020; // Tahun awal yang diinginkan
-                while (currentYear >= earliestYear) {
-                    let dateOption = document.createElement('option');
-                    dateOption.text = currentYear;
-                    dateOption.value = currentYear;
-                    dateDropdown.add(dateOption);
-                    currentYear -= 1;
-                }
-                // Panggil updateChart2() untuk memuat data awal
-                updateChartAlat();
-            });
-
-            // Event handler untuk perubahan pada dropdown tahun
-            document.getElementById('date-dropdown-alat').addEventListener('change', function() {
-                updateChartAlat();
-            });
-
-            function updateChartAlat() {
-                var selectedYear = document.getElementById('date-dropdown-alat').value;
-                var selectedSection = document.getElementById('section-dropdown-alat').value;
-
-                // Perform AJAX request to get new data based on selected year and section
-                $.ajax({
-                    url: '{{ route('getRepairAlatBantu') }}', // Replace with appropriate endpoint URL
-                    method: 'GET',
-                    data: {
-                        year: selectedYear,
-                        section: selectedSection
-                    },
-                    success: function(response) {
-                        var labels = response.labels;
-                        var data2 = response.data2;
-
-                        var color; // Variabel untuk menyimpan warna yang sesuai
-
-                        // Tentukan warna berdasarkan bagian yang dipilih
-                        switch (selectedSection) {
-                            case 'CUTTING':
-                                color = '#e74c3c';
-                                break;
-                            case 'MACHINING CUSTOM':
-                                color = '#3498db';
-                                break;
-                            case 'MACHINING':
-                                color = 'blue';
-                                break;
-                            case 'HEAT TREATMENT':
-                                color = '#27ae60';
-                                break;
-                            default:
-                                color = 'darkgrey'; // Warna default jika tidak ada yang cocok
+                                color = 'darkgrey';
                         }
 
                         if (!repairAlatBantu) {
@@ -1050,7 +1038,7 @@
                                 series: [{
                                     name: 'Line Stop (Dalam Menit)',
                                     data: data2,
-                                    color: color // Gunakan warna yang telah ditentukan
+                                    color: color
                                 }]
                             });
                         } else {
@@ -1058,55 +1046,23 @@
                             repairAlatBantu.series[0].setData(data2, true);
                             repairAlatBantu.series[0].update({
                                 color: color
-                            }); // Update warna
+                            });
                         }
                     },
                     error: function(xhr, status, error) {
                         console.error(xhr.responseText);
-                        // Handle error here
                     }
                 });
 
-                // Call function to update the period of work completion chart
                 updatePeriodeWaktuAlat();
-
-
             }
 
-            /// Inisialisasi chart periode waktu pengerjaan dengan data default
-            var ctxPeriode = document.getElementById('periodeRepairAlat').getContext('2d');
-            var periodeWaktuAlat = new Chart(ctxPeriode, {
-                type: 'bar',
-                data: {
-                    labels: ['Line Stop (Dalam Menit)'], // Label waktu pengerjaan saja
-                    datasets: [{
-                        label: 'Line Stop (Dalam menit)', // Label dataset
-                        data: [
-                            {!! json_encode($periodeWaktuAlat) !!}
-                        ], // Data waktu pengerjaan akan diisi setelah permintaan AJAX berhasil
-                        backgroundColor: 'red', // Merah terang dengan opacity 0.6
-                        borderColor: 'rgba(255, 99, 132, 0.6)', // Merah terang tanpa opacity
-                        borderWidth: 1
-                    }]
-                },
-
-                options: {
-                    scales: {
-                        y: {
-                            beginAtZero: true
-                        }
-                    }
-                }
-            });
-
-            // Fungsi untuk memperbarui chart periode waktu pengerjaan
             function updatePeriodeWaktuAlat() {
-                var selectedSection = document.getElementById('section-dropdown-alat').value;
-                var selectedYear = document.getElementById('date-dropdown-alat').value;
-                var startMonth = document.getElementById('start_month_alat').value;
-                var endMonth = document.getElementById('end_month_alat').value;
+                var selectedYear = $('#date-dropdown-alat').val();
+                var selectedSection = $('#section-dropdown-alat').val();
+                var startMonth = $('#start_month_alat').val();
+                var endMonth = $('#end_month_alat').val();
 
-                // Lakukan AJAX request untuk mendapatkan data periode waktu pengerjaan berdasarkan section dan tanggal yang dipilih
                 $.ajax({
                     url: '{{ route('getPeriodeWaktuAlat') }}',
                     method: 'GET',
@@ -1117,10 +1073,41 @@
                         end_month_alat: endMonth
                     },
                     success: function(response) {
-                        // Perbarui data chart dengan data baru
-                        periodeWaktuAlat.data.datasets[0].data = [response.total_minute];
+                        if (!periodeWaktuAlat) {
+                            periodeWaktuAlat = Highcharts.chart('periodeRepairAlat', {
+                                chart: {
+                                    type: 'column'
+                                },
+                                credits: {
+                                    enabled: false
+                                },
+                                title: {
+                                    text: 'Line Stop (Dalam Menit)'
+                                },
+                                xAxis: {
+                                    categories: ['Line Stop (Dalam Menit)']
+                                },
+                                yAxis: {
+                                    title: {
+                                        text: 'Menit'
+                                    },
+                                    min: 0
+                                },
+                                series: [{
+                                    name: 'Line Stop (Dalam menit)',
+                                    data: [],
+                                    color: 'red'
+                                }]
+                            });
+                        }
 
-                        // Tentukan warna berdasarkan bagian yang dipilih
+                        var totalMinute = response.total_minute;
+                        if (!Array.isArray(totalMinute)) {
+                            totalMinute = [totalMinute];
+                        }
+
+                        periodeWaktuAlat.series[0].setData(totalMinute);
+
                         var color;
                         switch (selectedSection) {
                             case 'CUTTING':
@@ -1136,45 +1123,20 @@
                                 color = '#27ae60';
                                 break;
                             default:
-                                color = 'darkgrey'; // Warna default jika tidak ada yang cocok
+                                color = 'darkgrey';
                         }
-                        // Update warna dataset
-                        periodeWaktuAlat.data.datasets[0].backgroundColor = color;
-                        periodeWaktuAlat.data.datasets[0].borderColor = color;
 
-                        periodeWaktuAlat.update();
+                        periodeWaktuAlat.series[0].update({
+                            color: color
+                        });
                     },
                     error: function(xhr, status, error) {
                         console.error(xhr.responseText);
-                        // Handle error here
                     }
                 });
             }
-
-
-            // Event handler untuk perubahan pada dropdown section
-            document.getElementById('section-dropdown-alat').addEventListener('change', function() {
-                updateChartAlat();
-                updatePeriodeWaktuAlat();
-            });
-
-            // Event handler untuk perubahan pada dropdown section
-            document.getElementById('date-dropdown-alat').addEventListener('change', function() {
-                updateChartAlat();
-                updatePeriodeWaktuAlat();
-            });
-
-
-            document.getElementById('start_month_alat').addEventListener('change', function() {
-                updateChartAlat();
-                updatePeriodeWaktuAlat();
-            });
-
-            document.getElementById('end_month_alat').addEventListener('change', function() {
-                updateChartAlat();
-                updatePeriodeWaktuAlat();
-            });
         </script>
+
 
         <script>
             function updateChartPeriodeAlat() {
@@ -1345,5 +1307,136 @@
             // Memanggil fungsi updateChartPeriodeMesin() untuk menginisialisasi grafik
             updateChartPeriodeMesin();
         </script>
+
+        <script>
+            function validateDates() {
+                var startMonth = document.getElementById("start_month2");
+                var endMonth = document.getElementById("end_month2");
+
+                var startDate = new Date(startMonth.value);
+                var endDate = new Date(endMonth.value);
+
+                if (endMonth.value && startDate > endDate) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Gagal!',
+                        text: 'Bulan Akhir tidak boleh lebih awal daripada Bulan Mulai',
+                    });
+                    endMonth.value = ""; // Clear the invalid date
+                }
+
+                if (startMonth.value && startDate > endDate) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Gagal!',
+                        text: 'Bulan Mulai tidak boleh lebih lama daripada Bulan Akhir',
+                    });
+                    startMonth.value = ""; // Clear the invalid date
+                }
+            }
+
+            document.getElementById("start_month2").addEventListener("change", validateDates);
+            document.getElementById("end_month2").addEventListener("change", validateDates);
+        </script>
+
+        <script>
+            function validateDates2() {
+                var startMonth2 = document.getElementById("start_mesin");
+                var endMonth2 = document.getElementById("end_mesin");
+
+                var startDate2 = new Date(startMonth2.value);
+                var endDate2 = new Date(endMonth2.value);
+
+                if (endMonth2.value && startDate2 > endDate2) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Gagal!',
+                        text: 'Bulan Akhir tidak boleh lebih awal daripada Bulan Mulai',
+                    });
+                    endMonth2.value = ""; // Clear the invalid date
+                }
+
+                if (startMonth2.value && startDate2 > endDate2) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Gagal!',
+                        text: 'Bulan Mulai tidak boleh lebih lama daripada Bulan Akhir',
+                    });
+                    startMonth2.value = ""; // Clear the invalid date
+                }
+            }
+
+            document.getElementById("start_mesin").addEventListener("change", validateDates2);
+            document.getElementById("end_mesin").addEventListener("change", validateDates2);
+        </script>
+
+        <script>
+            function validateDates3() {
+                var startMonth3 = document.getElementById("start_month_alat");
+                var endMonth3 = document.getElementById("end_month_alat");
+
+                var startDate3 = new Date(startMonth3.value);
+                var endDate3 = new Date(endMonth3.value);
+
+                if (endMonth3.value && startDate3 > endDate3) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Gagal!',
+                        text: 'Bulan Akhir tidak boleh lebih awal daripada Bulan Mulai',
+                    });
+                    endMonth3.value = ""; // Clear the invalid date
+                }
+
+                if (startMonth3.value && startDate3 > endDate3) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Gagal!',
+                        text: 'Bulan Mulai tidak boleh lebih lama daripada Bulan Akhir',
+                    });
+                    startMonth3.value = ""; // Clear the invalid date
+                }
+            }
+
+            document.getElementById("start_month_alat").addEventListener("change", validateDates3);
+            document.getElementById("end_month_alat").addEventListener("change", validateDates3);
+        </script>
+
+        <script>
+            function validateDates4() {
+                var startMonth4 = document.getElementById("start_alat");
+                var endMonth4 = document.getElementById("end_alat");
+
+                var startDate4 = new Date(startMonth4.value);
+                var endDate4 = new Date(endMonth4.value);
+
+                if (endMonth4.value && startDate4 > endDate4) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Gagal!',
+                        text: 'Bulan Akhir tidak boleh lebih awal daripada Bulan Mulai',
+                    });
+                    endMonth4.value = ""; // Clear the invalid date
+                }
+
+                if (startMonth4.value && startDate4 > endDate4) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Gagal!',
+                        text: 'Bulan Mulai tidak boleh lebih lama daripada Bulan Akhir',
+                    });
+                    startMonth4.value = ""; // Clear the invalid date
+                }
+            }
+
+            document.getElementById("start_alat").addEventListener("change", validateDates4);
+            document.getElementById("end_alat").addEventListener("change", validateDates4);
+        </script>
+
+
+
+
+
+
+
     </main><!-- End #main -->
 @endsection

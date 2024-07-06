@@ -213,7 +213,7 @@ class FormFPPController extends Controller
     {
         // Validasi input
         $request->validate([
-            'gambar' => 'image|mimes:jpeg,png,jpg,gif|max:4096', // Hanya menerima format gambar dengan ukuran maksimal 4MB
+            'gambar' => 'image|mimes:jpeg,png,jpg,gif|max:15360', // Hanya menerima format gambar dengan ukuran maksimal 4MB
         ]);
 
         // Mendapatkan ID terakhir dari kolom id_fpp
@@ -286,6 +286,14 @@ class FormFPPController extends Controller
 
     public function update(Request $request, FormFPP $formperbaikan, TindakLanjut $tindaklanjut): RedirectResponse
     {
+        // Validasi input
+        $request->validate([
+            'gambar' => 'image|mimes:jpeg,png,jpg,gif|max:15360', // Hanya menerima format gambar dengan ukuran maksimal 15MB
+            'pdf' => 'mimes:pdf|max:15360', // Hanya menerima format PDF dengan ukuran maksimal 15MB
+            'excel' => 'mimes:xlsx,xls|max:15360', // Hanya menerima format Excel dengan ukuran maksimal 15MB
+            'word' => 'mimes:doc,docx|max:15360', // Hanya menerima format Word dengan ukuran maksimal 15MB
+        ]);
+
         // Handle file upload/update for attachment_file
         if ($request->hasFile('attachment_file')) {
             $attachmentFile = $request->file('attachment_file');
@@ -391,8 +399,6 @@ class FormFPPController extends Controller
         }
     }
 
-
-
     public function downloadAttachment(TindakLanjut $tindaklanjut)
     {
         // Pastikan file attachment_file ada sebelum mencoba mengunduh
@@ -401,9 +407,37 @@ class FormFPPController extends Controller
 
             // Pastikan file ada di dalam direktori publik
             if (file_exists($filePath)) {
-                // Ambil base filename dari attachment
-                $baseFileName = basename($tindaklanjut->attachment_file);
+                // Ambil ekstensi file untuk menentukan jenis file
+                $extension = pathinfo($filePath, PATHINFO_EXTENSION);
 
+                // Tentukan jenis MIME untuk file preview
+                $mimeTypes = [
+                    'jpg' => 'image/jpeg',
+                    'jpeg' => 'image/jpeg',
+                    'png' => 'image/png',
+                    'pdf' => 'application/pdf',
+                    'xls' => 'application/vnd.ms-excel',
+                    'xlsx' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                    'doc' => 'application/msword',
+                    'docx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                ];
+
+                // Jika ekstensi file adalah gambar (jpg atau png), tampilkan sebagai gambar
+                if (in_array($extension, ['jpg', 'jpeg', 'png'])) {
+                    return response()->file($filePath, ['Content-Type' => $mimeTypes[$extension]]);
+                }
+
+                // Jika ekstensi file adalah dokumen (pdf, excel, word), tampilkan sebagai embed
+                if (in_array($extension, ['pdf', 'xls', 'xlsx', 'doc', 'docx'])) {
+                    // Ambil nama file asli
+                    $originalFileName = basename($tindaklanjut->attachment_file);
+                    $content = file_get_contents($filePath);
+                    return response($content)->header('Content-Type', $mimeTypes[$extension])
+                        ->header('Content-Disposition', 'inline; filename="' . $originalFileName . '"');
+                }
+
+                // Jika ekstensi tidak cocok dengan yang diinginkan, lakukan pengunduhan biasa
+                $baseFileName = basename($tindaklanjut->attachment_file);
                 return response()->download($filePath, $baseFileName);
             } else {
                 // File tidak ditemukan, arahkan kembali dengan pesan kesalahan
@@ -422,7 +456,7 @@ class FormFPPController extends Controller
 
         // Set judul di atas tabel
         $sheet->setCellValue('A1', 'DOWNTIME REPAIR MAINTENANCE'); // Judul
-        $sheet->mergeCells('A1:M1'); // Gabung sel untuk judul
+        $sheet->mergeCells('A1:L1'); // Gabung sel untuk judul
         $sheet->getStyle('A1')->getAlignment()->setHorizontal('left'); // Pusatkan judul
         $sheet->getStyle('A1')->getFont()->setBold(true); // Jadikan tebal judul
 
@@ -437,7 +471,8 @@ class FormFPPController extends Controller
         $sheet->setCellValue('H2', 'ISSUE');
         $sheet->setCellValue('I2', 'START');
         $sheet->setCellValue('J2', 'DUE DATE');
-        $sheet->setCellValue('K2', 'DOWNTIME');
+        $sheet->setCellValue('K2', 'DOWNTIME (MENIT)');
+        $sheet->setCellValue('L2', 'STATUS');
 
         // Gunakan join untuk menggabungkan data dari FormFPP dan TindakLanjut
         $formFPPData = FormFPP::select(
@@ -472,6 +507,7 @@ class FormFPPController extends Controller
             ->get();
 
         $row = 3; // Mulai dari baris ketiga karena baris kedua sudah diisi dengan judul kolom
+        $totalDowntimeMinutes = 0; // Inisialisasi total downtime menit
 
         foreach ($formFPPData as $data) {
             // Hilangkan karakter '|' dari tanggal
@@ -483,13 +519,29 @@ class FormFPPController extends Controller
                 $start = Carbon::parse($createdAt);
                 $due_date = Carbon::parse($updatedAt);
                 $downtimeMinutes = $start->diffInMinutes($due_date);
-                $hours = intdiv($downtimeMinutes, 60);
-                $minutes = $downtimeMinutes % 60;
-                $downtime = "{$hours} Jam {$minutes} Menit";
+                $totalDowntimeMinutes += $downtimeMinutes; // Tambahkan ke total downtime
             } else {
-                $start = Carbon::parse($createdAt);
-                $due_date = null;
-                $downtime = '-'; // Atau nilai default lain yang Anda inginkan
+                $downtimeMinutes = 0;
+            }
+
+            // Ubah status menjadi huruf
+            $statusText = '';
+            switch ($data->status) {
+                case 0:
+                    $statusText = 'Open';
+                    break;
+                case 1:
+                    $statusText = 'On Progress';
+                    break;
+                case 2:
+                    $statusText = 'Finish';
+                    break;
+                case 3:
+                    $statusText = 'Closed';
+                    break;
+                default:
+                    $statusText = 'Unknown';
+                    break;
             }
 
             $sheet->setCellValue('A' . $row, $row - 2); // Nomor berurutan dimulai dari 1
@@ -502,13 +554,18 @@ class FormFPPController extends Controller
             $sheet->setCellValue('H' . $row, $data->kendala);
             $sheet->setCellValue('I' . $row, $start->format('Y-m-d'));
             $sheet->setCellValue('J' . $row, $due_date ? $due_date->format('Y-m-d') : '-');
-            $sheet->setCellValue('K' . $row, $downtime);
+            $sheet->setCellValue('K' . $row, $downtimeMinutes);
+            $sheet->setCellValue('L' . $row, $statusText);
 
             $row++;
         }
 
+        // Tambahkan total downtime di bawah tabel
+        $sheet->setCellValue('J' . $row, 'Total Downtime (Menit)');
+        $sheet->setCellValue('K' . $row, $totalDowntimeMinutes);
+
         // Menambahkan keterangan di bawah tabel
-        $lastRow = $row;
+        $lastRow = $row + 1;
         $sheet->setCellValue('A' . ($lastRow + 1), 'Note :');
         $sheet->setCellValue('A' . ($lastRow + 2), 'PIC.MTCH');
         $sheet->setCellValue('B' . ($lastRow + 2), 'User maintenance yang melakukan perbaikan'); // Menyesuaikan dengan kolom PIC Maintenance
@@ -528,7 +585,7 @@ class FormFPPController extends Controller
         $sheet->setCellValue('B' . ($lastRow + 9), 'Tgl selesai repair'); // Menyesuaikan dengan kolom Due Date
 
         // Menyesuaikan ukuran kolom secara otomatis
-        foreach (range('A', 'K') as $column) {
+        foreach (range('A', 'L') as $column) {
             $sheet->getColumnDimension($column)->setAutoSize(true);
         }
 
@@ -542,7 +599,7 @@ class FormFPPController extends Controller
             ],
         ];
 
-        $sheet->getStyle('A2:K' . ($row - 1))->applyFromArray($styleArray);
+        $sheet->getStyle('A2:L' . ($row - 1))->applyFromArray($styleArray);
 
         $writer = new Xlsx($spreadsheet);
         $fileName = 'downtime_maintenance.xlsx';

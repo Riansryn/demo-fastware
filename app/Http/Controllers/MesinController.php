@@ -53,8 +53,8 @@ class MesinController extends Controller
     {
         // Validasi input
         $request->validate([
-            'foto' => 'image|mimes:jpeg,png,jpg,gif|max:4096', // Hanya menerima format gambar dengan ukuran maksimal 4MB
-            'sparepart' => 'image|mimes:jpeg,png,jpg,gif|max:4096', // Sesuaikan dengan kebutuhan Anda
+            'foto' => 'image|mimes:jpeg,png,jpg,gif|max:15360', // Hanya menerima format gambar dengan ukuran maksimal 4MB
+            'sparepart' => 'image|mimes:jpeg,png,jpg,gif|max:15360', // Sesuaikan dengan kebutuhan Anda
         ]);
 
         // Merge nilai default untuk status ke dalam request

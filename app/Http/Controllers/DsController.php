@@ -267,19 +267,19 @@ class DsController extends Controller
             ->orderBy('month')
             ->get();
 
-        $periodeWaktuPengerjaan = FormFPP::join('mesin', 'form_f_p_p_s.mesin', '=', 'mesin.no_mesin')
-            ->selectRaw('SUM(TIMESTAMPDIFF(SECOND, form_f_p_p_s.created_at, form_f_p_p_s.updated_at) / 60) as total_minute')
-            ->whereYear('form_f_p_p_s.created_at', $selectedYear)
-            ->whereBetween('form_f_p_p_s.created_at', [$startMonth, $endMonth])
-            ->where('form_f_p_p_s.status', 3)
-            ->first();
+        // $periodeWaktuPengerjaan = FormFPP::join('mesin', 'form_f_p_p_s.mesin', '=', 'mesin.no_mesin')
+        //     ->selectRaw('SUM(TIMESTAMPDIFF(SECOND, form_f_p_p_s.created_at, form_f_p_p_s.updated_at) / 60) as total_minute')
+        //     ->whereYear('form_f_p_p_s.created_at', $selectedYear)
+        //     ->whereBetween('form_f_p_p_s.created_at', [$startMonth, $endMonth])
+        //     ->where('form_f_p_p_s.status', 3)
+        //     ->first();
 
-        $periodeWaktuAlat = FormFPP::leftJoin('mesin', 'form_f_p_p_s.mesin', '=', 'mesin.no_mesin')
-            ->selectRaw('SUM(TIMESTAMPDIFF(SECOND, form_f_p_p_s.created_at, form_f_p_p_s.updated_at) / 60) as total_minute')
-            ->whereBetween('form_f_p_p_s.created_at', [$startMonth, $endMonth])
-            ->where('form_f_p_p_s.status', 3)
-            ->whereNull('mesin.no_mesin') // Hanya data yang tidak terkait dengan mesin
-            ->first();
+        // $periodeWaktuAlat = FormFPP::leftJoin('mesin', 'form_f_p_p_s.mesin', '=', 'mesin.no_mesin')
+        //     ->selectRaw('SUM(TIMESTAMPDIFF(SECOND, form_f_p_p_s.created_at, form_f_p_p_s.updated_at) / 60) as total_minute')
+        //     ->whereYear('form_f_p_p_s.created_at', $selectedYear)
+        //     ->where('form_f_p_p_s.status', 3)
+        //     ->whereNull('mesin.no_mesin') // Hanya data yang tidak terkait dengan mesin
+        //     ->first();
 
         // Buat array lengkap dari label bulan
         $fullMonthLabels = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
@@ -298,13 +298,13 @@ class DsController extends Controller
                 'chartCutting',
                 'summaryData',
                 'summaryData2',
-                'periodeWaktuAlat',
+                // 'periodeWaktuAlat',
                 'chartCutting',
                 'chartMachining',
                 'chartMachiningCustom',
                 'chartHeatTreatment',
                 'data2',
-                'periodeWaktuPengerjaan',
+                // 'periodeWaktuPengerjaan',
                 'sections',
                 'years2',
             )
