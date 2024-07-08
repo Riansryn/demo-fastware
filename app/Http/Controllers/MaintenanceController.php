@@ -13,12 +13,15 @@ use Illuminate\View\View;
 
 class MaintenanceController extends Controller
 {
-    public function getRepairMaintenance(Request $request)
-    {
-        // Ambil parameter tahun dan bagian dari permintaan HTTP
-        $selectedYear = $request->input('year', date('Y')); // Jika tidak ada parameter tahun, gunakan tahun saat ini sebagai default
-        $selectedSection = $request->input('section', 'All');
 
+    public function getMaintenanceData(Request $request)
+    {
+        $selectedYear = $request->input('year', date('Y'));
+        $selectedSection = $request->input('section', 'All');
+        $startMonth = $request->input('start_month2');
+        $endMonth = $request->input('end_month2');
+
+        // Data untuk getRepairMaintenance
         if ($selectedSection === 'All') {
             $summaryData2 = FormFPP::join('mesin', 'form_f_p_p_s.mesin', '=', 'mesin.no_mesin')
                 ->selectRaw('YEAR(form_f_p_p_s.created_at) as year,
@@ -42,32 +45,110 @@ class MaintenanceController extends Controller
                 ->get();
         }
 
-        // Buat array lengkap dari label bulan
         $fullMonthLabels = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-
-        // Inisialisasi array kosong untuk data
         $data2 = array_fill(0, 12, 0);
 
-        // Iterasi melalui data yang diterima dari database
         foreach ($summaryData2 as $dataPoint) {
-            $monthIndex = $dataPoint->month - 1; // Index bulan dimulai dari 0
-            $data2[$monthIndex] += $dataPoint->total_hour; // Menambahkan total jam ke data yang sudah ada
+            $monthIndex = $dataPoint->month - 1;
+            $data2[$monthIndex] += $dataPoint->total_hour;
         }
 
-        // Kirim data sebagai respons JSON
-        return response()->json(['labels' => $fullMonthLabels, 'data2' => $data2]);
+        $periodeData = 0;
+
+        if ($selectedSection === 'All' && empty($startMonth) && empty($endMonth)) {
+            $periodeWaktuPengerjaan = FormFPP::join('mesin', 'form_f_p_p_s.mesin', '=', 'mesin.no_mesin')
+                ->selectRaw('SUM(TIMESTAMPDIFF(SECOND, form_f_p_p_s.created_at, form_f_p_p_s.updated_at) / 60) as total_minute')
+                ->whereYear('form_f_p_p_s.created_at', $selectedYear)
+                ->where('form_f_p_p_s.status', 3)
+                ->first();
+
+            $periodeData = $periodeWaktuPengerjaan ? $periodeWaktuPengerjaan->total_minute : 0;
+        } else {
+            $query = FormFPP::join('mesin', 'form_f_p_p_s.mesin', '=', 'mesin.no_mesin')
+                ->selectRaw('SUM(TIMESTAMPDIFF(SECOND, form_f_p_p_s.created_at, form_f_p_p_s.updated_at) / 60) as total_minute')
+                ->where('form_f_p_p_s.status', 3);
+
+            if ($selectedSection !== 'All') {
+                $query->where('form_f_p_p_s.section', $selectedSection);
+            }
+
+            if (!empty($startMonth) && !empty($endMonth)) {
+                $query->whereBetween('form_f_p_p_s.created_at', [$startMonth, $endMonth]);
+            } else {
+                $query->whereYear('form_f_p_p_s.created_at', $selectedYear);
+            }
+
+            $periodeWaktuPengerjaan = $query->first();
+
+            $periodeData = $periodeWaktuPengerjaan ? $periodeWaktuPengerjaan->total_minute : 0;
+        }
+
+        $response = [
+            'repairMaintenance' => [
+                'labels' => $fullMonthLabels,
+                'data2' => $data2,
+            ],
+            'periodeWaktuPengerjaan' => [
+                'data2' => [$periodeData],
+            ]
+        ];
+
+        return response()->json($response);
     }
 
-    public function getRepairAlatBantu(Request $request)
+    public function getMaintenanceDataAlat(Request $request)
     {
-        // Ambil parameter tahun dan bagian dari permintaan HTTP
+        // Ambil parameter tahun, bagian, tanggal mulai, dan tanggal akhir dari permintaan HTTP
         $selectedYear = $request->input('year', date('Y')); // Jika tidak ada parameter tahun, gunakan tahun saat ini sebagai default
         $selectedSection = $request->input('section', 'All');
+        $startMonth = $request->input('start_month_alat');
+        $endMonth = $request->input('end_month_alat');
 
+        // Inisialisasi variabel untuk hasil query
+        $periodeWaktuAlat = 0;
+
+        // Query untuk mendapatkan periode waktu alat
+        if ($selectedSection === 'All' && empty($startMonth) && empty($endMonth)) {
+            $periodeWaktuAlat = FormFPP::leftJoin('mesin', 'form_f_p_p_s.mesin', '=', 'mesin.no_mesin')
+                ->selectRaw('SUM(TIMESTAMPDIFF(SECOND, form_f_p_p_s.created_at, form_f_p_p_s.updated_at) / 60) as total_minute')
+                ->whereYear('form_f_p_p_s.created_at', $selectedYear)
+                ->where('form_f_p_p_s.status', 3)
+                ->whereNull('mesin.no_mesin') // Hanya data yang tidak terkait dengan mesin
+                ->first();
+        } else {
+            if ($selectedSection === 'All') {
+                $periodeWaktuAlat = FormFPP::leftJoin('mesin', 'form_f_p_p_s.mesin', '=', 'mesin.no_mesin')
+                    ->selectRaw('SUM(TIMESTAMPDIFF(SECOND, form_f_p_p_s.created_at, form_f_p_p_s.updated_at) / 60) as total_minute')
+                    ->whereBetween('form_f_p_p_s.created_at', [$startMonth, $endMonth])
+                    ->where('form_f_p_p_s.status', 3)
+                    ->whereNull('mesin.no_mesin') // Hanya data yang tidak terkait dengan mesin
+                    ->first();
+            } else {
+                if (empty($startMonth) && empty($endMonth)) {
+                    $periodeWaktuAlat = FormFPP::leftJoin('mesin', 'form_f_p_p_s.mesin', '=', 'mesin.no_mesin')
+                        ->selectRaw('SUM(TIMESTAMPDIFF(SECOND, form_f_p_p_s.created_at, form_f_p_p_s.updated_at) / 60) as total_minute')
+                        ->whereYear('form_f_p_p_s.created_at', $selectedYear)
+                        ->where('form_f_p_p_s.section', $selectedSection)
+                        ->where('form_f_p_p_s.status', 3)
+                        ->whereNull('mesin.no_mesin') // Hanya data yang tidak terkait dengan mesin
+                        ->first();
+                } else {
+                    $periodeWaktuAlat = FormFPP::leftJoin('mesin', 'form_f_p_p_s.mesin', '=', 'mesin.no_mesin')
+                        ->selectRaw('SUM(TIMESTAMPDIFF(SECOND, form_f_p_p_s.created_at, form_f_p_p_s.updated_at) / 60) as total_minute')
+                        ->where('form_f_p_p_s.section', $selectedSection)
+                        ->whereBetween('form_f_p_p_s.created_at', [$startMonth, $endMonth])
+                        ->where('form_f_p_p_s.status', 3)
+                        ->whereNull('mesin.no_mesin') // Hanya data yang tidak terkait dengan mesin
+                        ->first();
+                }
+            }
+        }
+
+        // Query untuk mendapatkan data perbaikan alat bantu
         if ($selectedSection === 'All') {
             $summaryAlat = FormFPP::leftJoin('mesin', 'form_f_p_p_s.mesin', '=', 'mesin.no_mesin')
                 ->selectRaw('YEAR(form_f_p_p_s.created_at) as year,
-                    MONTH(form_f_p_p_s.created_at) as month, SUM(TIMESTAMPDIFF(SECOND, form_f_p_p_s.created_at, form_f_p_p_s.updated_at) / 60) as total_hour')
+                MONTH(form_f_p_p_s.created_at) as month, SUM(TIMESTAMPDIFF(SECOND, form_f_p_p_s.created_at, form_f_p_p_s.updated_at) / 60) as total_minute')
                 ->whereYear('form_f_p_p_s.created_at', $selectedYear)
                 ->where('form_f_p_p_s.status', 3)
                 ->whereNull('mesin.no_mesin') // Hanya data yang tidak terkait dengan mesin
@@ -78,7 +159,7 @@ class MaintenanceController extends Controller
         } else {
             $summaryAlat = FormFPP::leftJoin('mesin', 'form_f_p_p_s.mesin', '=', 'mesin.no_mesin')
                 ->selectRaw('mesin.no_mesin, YEAR(form_f_p_p_s.created_at) as year,
-                    MONTH(form_f_p_p_s.created_at) as month, SUM(TIMESTAMPDIFF(SECOND, form_f_p_p_s.created_at, form_f_p_p_s.updated_at) / 60) as total_hour')
+                MONTH(form_f_p_p_s.created_at) as month, SUM(TIMESTAMPDIFF(SECOND, form_f_p_p_s.created_at, form_f_p_p_s.updated_at) / 60) as total_minute')
                 ->whereYear('form_f_p_p_s.created_at', $selectedYear)
                 ->where('form_f_p_p_s.section', $selectedSection)
                 ->where('form_f_p_p_s.status', 3)
@@ -98,109 +179,172 @@ class MaintenanceController extends Controller
         // Iterasi melalui data yang diterima dari database
         foreach ($summaryAlat as $dataPoint) {
             $monthIndex = $dataPoint->month - 1; // Index bulan dimulai dari 0
-            $data2[$monthIndex] += $dataPoint->total_hour; // Menambahkan total jam ke data yang sudah ada
+            $data2[$monthIndex] += $dataPoint->total_minute; // Menambahkan total jam ke data yang sudah ada
         }
 
-        // Kirim data sebagai respons JSON
-        return response()->json(['labels' => $fullMonthLabels, 'data2' => $data2]);
+        $periodeData = $periodeWaktuAlat ? $periodeWaktuAlat->total_minute : 0;
+
+
+        $response = [
+            'repairAlat' => [
+                'labels' => $fullMonthLabels,
+                'data2' => $data2,
+            ],
+            'periodeWaktuAlat' => [
+                'data2' => [$periodeData],
+            ]
+        ];
+
+        return response()->json($response);
     }
 
 
-    public function getPeriodeWaktuPengerjaan(Request $request)
-    {
-        $selectedSection = $request->input('section', 'All');
-        $startMonth = $request->input('start_month2');
-        $endMonth = $request->input('end_month2');
-        $selectedYear = $request->input('year', date('Y'));
 
-        // Jika bagian yang dipilih adalah 'All' dan tidak ada tanggal mulai dan akhir yang diberikan
-        if ($selectedSection === 'All' && empty($startMonth) && empty($endMonth)) {
-            $periodeWaktuPengerjaan = FormFPP::join('mesin', 'form_f_p_p_s.mesin', '=', 'mesin.no_mesin')
-                ->selectRaw('SUM(TIMESTAMPDIFF(SECOND, form_f_p_p_s.created_at, form_f_p_p_s.updated_at) / 60) as total_minute')
-                ->whereYear('form_f_p_p_s.created_at', $selectedYear)
-                ->where('form_f_p_p_s.status', 3)
-                ->first();
-        } else {
-            // Jika bagian yang dipilih adalah 'All' dan tanggal mulai dan akhir diberikan
-            if ($selectedSection === 'All') {
-                $periodeWaktuPengerjaan = FormFPP::join('mesin', 'form_f_p_p_s.mesin', '=', 'mesin.no_mesin')
-                    ->selectRaw('SUM(TIMESTAMPDIFF(SECOND, form_f_p_p_s.created_at, form_f_p_p_s.updated_at) / 60) as total_minute')
-                    ->whereBetween('form_f_p_p_s.created_at', [$startMonth, $endMonth])
-                    ->where('form_f_p_p_s.status', 3)
-                    ->first();
-            } else {
-                // Jika bagian yang dipilih bukan 'All' dan tanggal mulai dan akhir diberikan
-                if (empty($startMonth) && empty($endMonth)) {
-                    $periodeWaktuPengerjaan = FormFPP::join('mesin', 'form_f_p_p_s.mesin', '=', 'mesin.no_mesin')
-                        ->selectRaw('SUM(TIMESTAMPDIFF(SECOND, form_f_p_p_s.created_at, form_f_p_p_s.updated_at) / 60) as total_minute')
-                        ->whereYear('form_f_p_p_s.created_at', $selectedYear)
-                        ->where('form_f_p_p_s.section', $selectedSection)
-                        ->where('form_f_p_p_s.status', 3)
-                        ->first();
-                } else {
-                    $periodeWaktuPengerjaan = FormFPP::join('mesin', 'form_f_p_p_s.mesin', '=', 'mesin.no_mesin')
-                        ->selectRaw('SUM(TIMESTAMPDIFF(SECOND, form_f_p_p_s.created_at, form_f_p_p_s.updated_at) / 60) as total_minute')
-                        ->where('form_f_p_p_s.section', $selectedSection)
-                        ->whereBetween('form_f_p_p_s.created_at', [$startMonth, $endMonth])
-                        ->where('form_f_p_p_s.status', 3)
-                        ->first();
-                }
-            }
-        }
 
-        // Return data as JSON response
-        return response()->json($periodeWaktuPengerjaan);
-    }
+    // public function getRepairAlatBantu(Request $request)
+    // {
+    //     // Ambil parameter tahun dan bagian dari permintaan HTTP
+    //     $selectedYear = $request->input('year', date('Y')); // Jika tidak ada parameter tahun, gunakan tahun saat ini sebagai default
+    //     $selectedSection = $request->input('section', 'All');
 
-    public function getPeriodeWaktuAlat(Request $request)
-    {
-        $selectedSection = $request->input('section', 'All');
-        $startMonth = $request->input('start_month_alat');
-        $endMonth = $request->input('end_month_alat');
-        $selectedYear = $request->input('year', date('Y'));
+    //     if ($selectedSection === 'All') {
+    //         $summaryAlat = FormFPP::leftJoin('mesin', 'form_f_p_p_s.mesin', '=', 'mesin.no_mesin')
+    //             ->selectRaw('YEAR(form_f_p_p_s.created_at) as year,
+    //                 MONTH(form_f_p_p_s.created_at) as month, SUM(TIMESTAMPDIFF(SECOND, form_f_p_p_s.created_at, form_f_p_p_s.updated_at) / 60) as total_hour')
+    //             ->whereYear('form_f_p_p_s.created_at', $selectedYear)
+    //             ->where('form_f_p_p_s.status', 3)
+    //             ->whereNull('mesin.no_mesin') // Hanya data yang tidak terkait dengan mesin
+    //             ->groupBy('year', 'month')
+    //             ->orderBy('year')
+    //             ->orderBy('month')
+    //             ->get();
+    //     } else {
+    //         $summaryAlat = FormFPP::leftJoin('mesin', 'form_f_p_p_s.mesin', '=', 'mesin.no_mesin')
+    //             ->selectRaw('mesin.no_mesin, YEAR(form_f_p_p_s.created_at) as year,
+    //                 MONTH(form_f_p_p_s.created_at) as month, SUM(TIMESTAMPDIFF(SECOND, form_f_p_p_s.created_at, form_f_p_p_s.updated_at) / 60) as total_hour')
+    //             ->whereYear('form_f_p_p_s.created_at', $selectedYear)
+    //             ->where('form_f_p_p_s.section', $selectedSection)
+    //             ->where('form_f_p_p_s.status', 3)
+    //             ->whereNull('mesin.no_mesin') // Hanya data yang tidak terkait dengan mesin
+    //             ->groupBy('mesin.no_mesin', 'year', 'month')
+    //             ->orderBy('year')
+    //             ->orderBy('month')
+    //             ->get();
+    //     }
 
-        // Jika bagian yang dipilih adalah 'All' dan tidak ada tanggal mulai dan akhir yang diberikan
-        if ($selectedSection === 'All' && empty($startMonth) && empty($endMonth)) {
-            $periodeWaktuAlat = FormFPP::leftJoin('mesin', 'form_f_p_p_s.mesin', '=', 'mesin.no_mesin')
-                ->selectRaw('SUM(TIMESTAMPDIFF(SECOND, form_f_p_p_s.created_at, form_f_p_p_s.updated_at) / 60) as total_minute')
-                ->whereYear('form_f_p_p_s.created_at', $selectedYear)
-                ->where('form_f_p_p_s.status', 3)
-                ->whereNull('mesin.no_mesin') // Hanya data yang tidak terkait dengan mesin
-                ->first();
-        } else {
-            // Jika bagian yang dipilih adalah 'All' dan tanggal mulai dan akhir diberikan
-            if ($selectedSection === 'All') {
-                $periodeWaktuAlat = FormFPP::leftJoin('mesin', 'form_f_p_p_s.mesin', '=', 'mesin.no_mesin')
-                    ->selectRaw('SUM(TIMESTAMPDIFF(SECOND, form_f_p_p_s.created_at, form_f_p_p_s.updated_at) / 60) as total_minute')
-                    ->whereBetween('form_f_p_p_s.created_at', [$startMonth, $endMonth])
-                    ->where('form_f_p_p_s.status', 3)
-                    ->whereNull('mesin.no_mesin') // Hanya data yang tidak terkait dengan mesin
-                    ->first();
-            } else {
-                // Jika bagian yang dipilih bukan 'All' dan tanggal mulai dan akhir diberikan
-                if (empty($startMonth) && empty($endMonth)) {
-                    $periodeWaktuAlat = FormFPP::leftJoin('mesin', 'form_f_p_p_s.mesin', '=', 'mesin.no_mesin')
-                        ->selectRaw('SUM(TIMESTAMPDIFF(SECOND, form_f_p_p_s.created_at, form_f_p_p_s.updated_at) / 60) as total_minute')
-                        ->whereYear('form_f_p_p_s.created_at', $selectedYear)
-                        ->where('form_f_p_p_s.section', $selectedSection)
-                        ->where('form_f_p_p_s.status', 3)
-                        ->whereNull('mesin.no_mesin') // Hanya data yang tidak terkait dengan mesin
-                        ->first();
-                } else {
-                    $periodeWaktuAlat = FormFPP::leftJoin('mesin', 'form_f_p_p_s.mesin', '=', 'mesin.no_mesin')
-                        ->selectRaw('SUM(TIMESTAMPDIFF(SECOND, form_f_p_p_s.created_at, form_f_p_p_s.updated_at) / 60) as total_minute')
-                        ->where('form_f_p_p_s.section', $selectedSection)
-                        ->whereBetween('form_f_p_p_s.created_at', [$startMonth, $endMonth])
-                        ->where('form_f_p_p_s.status', 3)
-                        ->whereNull('mesin.no_mesin') // Hanya data yang tidak terkait dengan mesin
-                        ->first();
-                }
-            }
-        }
+    //     // Buat array lengkap dari label bulan
+    //     $fullMonthLabels = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
-        // Return data as JSON response
-        return response()->json($periodeWaktuAlat);
-    }
+    //     // Inisialisasi array kosong untuk data
+    //     $data2 = array_fill(0, 12, 0);
+
+    //     // Iterasi melalui data yang diterima dari database
+    //     foreach ($summaryAlat as $dataPoint) {
+    //         $monthIndex = $dataPoint->month - 1; // Index bulan dimulai dari 0
+    //         $data2[$monthIndex] += $dataPoint->total_hour; // Menambahkan total jam ke data yang sudah ada
+    //     }
+
+    //     // Kirim data sebagai respons JSON
+    //     return response()->json(['labels' => $fullMonthLabels, 'data2' => $data2]);
+    // }
+
+
+    // public function getPeriodeWaktuPengerjaan(Request $request)
+    // {
+    //     $selectedSection = $request->input('section', 'All');
+    //     $startMonth = $request->input('start_month2');
+    //     $endMonth = $request->input('end_month2');
+    //     $selectedYear = $request->input('year', date('Y'));
+
+    //     // Default labels and data arrays
+    //     $labels = ['Total Time'];
+    //     $data2 = [0];
+
+    //     if ($selectedSection === 'All' && empty($startMonth) && empty($endMonth)) {
+    //         $periodeWaktuPengerjaan = FormFPP::join('mesin', 'form_f_p_p_s.mesin', '=', 'mesin.no_mesin')
+    //             ->selectRaw('SUM(TIMESTAMPDIFF(SECOND, form_f_p_p_s.created_at, form_f_p_p_s.updated_at) / 60) as total_minute')
+    //             ->whereYear('form_f_p_p_s.created_at', $selectedYear)
+    //             ->where('form_f_p_p_s.status', 3)
+    //             ->first();
+    //         if ($periodeWaktuPengerjaan) {
+    //             $data2[0] = $periodeWaktuPengerjaan->total_minute;
+    //         }
+    //     } else {
+    //         // Adjust query based on given conditions
+    //         $query = FormFPP::join('mesin', 'form_f_p_p_s.mesin', '=', 'mesin.no_mesin')
+    //             ->selectRaw('SUM(TIMESTAMPDIFF(SECOND, form_f_p_p_s.created_at, form_f_p_p_s.updated_at) / 60) as total_minute')
+    //             ->where('form_f_p_p_s.status', 3);
+
+    //         if ($selectedSection !== 'All') {
+    //             $query->where('form_f_p_p_s.section', $selectedSection);
+    //         }
+
+    //         if (!empty($startMonth) && !empty($endMonth)) {
+    //             $query->whereBetween('form_f_p_p_s.created_at', [$startMonth, $endMonth]);
+    //         } else {
+    //             $query->whereYear('form_f_p_p_s.created_at', $selectedYear);
+    //         }
+
+    //         $periodeWaktuPengerjaan = $query->first();
+    //         if ($periodeWaktuPengerjaan) {
+    //             $data2[0] = $periodeWaktuPengerjaan->total_minute;
+    //         }
+    //     }
+
+    //     // Return data as JSON response
+    //     return response()->json(['labels' => $labels, 'data2' => $data2]);
+    // }
+
+
+    // public function getPeriodeWaktuAlat(Request $request)
+    // {
+    //     $selectedSection = $request->input('section', 'All');
+    //     $startMonth = $request->input('start_month_alat');
+    //     $endMonth = $request->input('end_month_alat');
+    //     $selectedYear = $request->input('year', date('Y'));
+
+    //     // Jika bagian yang dipilih adalah 'All' dan tidak ada tanggal mulai dan akhir yang diberikan
+    //     if ($selectedSection === 'All' && empty($startMonth) && empty($endMonth)) {
+    //         $periodeWaktuAlat = FormFPP::leftJoin('mesin', 'form_f_p_p_s.mesin', '=', 'mesin.no_mesin')
+    //             ->selectRaw('SUM(TIMESTAMPDIFF(SECOND, form_f_p_p_s.created_at, form_f_p_p_s.updated_at) / 60) as total_minute')
+    //             ->whereYear('form_f_p_p_s.created_at', $selectedYear)
+    //             ->where('form_f_p_p_s.status', 3)
+    //             ->whereNull('mesin.no_mesin') // Hanya data yang tidak terkait dengan mesin
+    //             ->first();
+    //     } else {
+    //         // Jika bagian yang dipilih adalah 'All' dan tanggal mulai dan akhir diberikan
+    //         if ($selectedSection === 'All') {
+    //             $periodeWaktuAlat = FormFPP::leftJoin('mesin', 'form_f_p_p_s.mesin', '=', 'mesin.no_mesin')
+    //                 ->selectRaw('SUM(TIMESTAMPDIFF(SECOND, form_f_p_p_s.created_at, form_f_p_p_s.updated_at) / 60) as total_minute')
+    //                 ->whereBetween('form_f_p_p_s.created_at', [$startMonth, $endMonth])
+    //                 ->where('form_f_p_p_s.status', 3)
+    //                 ->whereNull('mesin.no_mesin') // Hanya data yang tidak terkait dengan mesin
+    //                 ->first();
+    //         } else {
+    //             // Jika bagian yang dipilih bukan 'All' dan tanggal mulai dan akhir diberikan
+    //             if (empty($startMonth) && empty($endMonth)) {
+    //                 $periodeWaktuAlat = FormFPP::leftJoin('mesin', 'form_f_p_p_s.mesin', '=', 'mesin.no_mesin')
+    //                     ->selectRaw('SUM(TIMESTAMPDIFF(SECOND, form_f_p_p_s.created_at, form_f_p_p_s.updated_at) / 60) as total_minute')
+    //                     ->whereYear('form_f_p_p_s.created_at', $selectedYear)
+    //                     ->where('form_f_p_p_s.section', $selectedSection)
+    //                     ->where('form_f_p_p_s.status', 3)
+    //                     ->whereNull('mesin.no_mesin') // Hanya data yang tidak terkait dengan mesin
+    //                     ->first();
+    //             } else {
+    //                 $periodeWaktuAlat = FormFPP::leftJoin('mesin', 'form_f_p_p_s.mesin', '=', 'mesin.no_mesin')
+    //                     ->selectRaw('SUM(TIMESTAMPDIFF(SECOND, form_f_p_p_s.created_at, form_f_p_p_s.updated_at) / 60) as total_minute')
+    //                     ->where('form_f_p_p_s.section', $selectedSection)
+    //                     ->whereBetween('form_f_p_p_s.created_at', [$startMonth, $endMonth])
+    //                     ->where('form_f_p_p_s.status', 3)
+    //                     ->whereNull('mesin.no_mesin') // Hanya data yang tidak terkait dengan mesin
+    //                     ->first();
+    //             }
+    //         }
+    //     }
+
+    //     // Return data as JSON response
+    //     return response()->json($periodeWaktuAlat);
+    // }
 
     public function getPeriodeMesin(Request $request)
     {
