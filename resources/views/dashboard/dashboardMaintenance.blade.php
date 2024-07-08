@@ -823,7 +823,7 @@
             function updatePeriodeWaktuPengerjaanChart(labels, data2, selectedSection) {
                 console.log('Data received:', labels, data2); // Debug log
 
-                var totalLabels = ['Total Time']; // Label di sumbu X
+                var totalLabels = ['Linestop (Dalam Menit)']; // Label di sumbu X
                 var totalData = data2 && data2.length > 0 ? parseFloat(data2[0]) : 0; // Data di sumbu Y
 
                 var color;
@@ -855,9 +855,6 @@
                         },
                         xAxis: {
                             categories: totalLabels, // Label sumbu X
-                            title: {
-                                text: 'Time (minutes)' // Label sumbu X
-                            }
                         },
                         yAxis: {
                             min: 0,
@@ -1025,7 +1022,7 @@
             function updatePeriodeWaktuPengerjaanAlatChart(labels, data2, selectedSection) {
                 console.log('Data received:', labels, data2); // Debug log
 
-                var totalLabels = ['Total Time']; // Label di sumbu X
+                var totalLabels = ['Linestop (Dalam Menit)']; // Label di sumbu X
                 var totalData = data2 && data2.length > 0 ? parseFloat(data2[0]) : 0; // Data di sumbu Y
 
                 var color;
@@ -1057,9 +1054,6 @@
                         },
                         xAxis: {
                             categories: totalLabels, // Label sumbu X
-                            title: {
-                                text: 'Time (minutes)' // Label sumbu X
-                            }
                         },
                         yAxis: {
                             min: 0,

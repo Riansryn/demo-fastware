@@ -125,8 +125,8 @@
                                             value='0'>
 
                                         <div class="text-end">
-                                            <button type="submit" class="btn btn-secondary"
-                                                id="saveButton">Simpan</button>
+                                            <button type="button" class="btn btn-secondary" id="saveButton"
+                                                onclick="handleSaveButtonClick()">Simpan</button>
                                             <button type="button" class="btn btn-primary" id="finishButton"
                                                 onclick="handleFinishButtonClick()">Selesai</button>
                                         </div>
@@ -230,6 +230,50 @@
 @endsection
 
 <script>
+    function handleSaveButtonClick() {
+        // Validate file size
+        const fileInput = document.getElementById('attachment_file');
+        const file = fileInput.files[0];
+        if (file && file.size > 15 * 1024 * 1024) { // 15 MB in bytes
+            Swal.fire({
+                icon: 'error',
+                title: 'File Terlalu Besar',
+                text: 'Ukuran file tidak boleh melebihi 15MB!',
+            });
+            fileInput.value = ''; // Clear the file input
+            return; // Stop further execution
+        }
+
+        // Show SweetAlert confirmation
+        Swal.fire({
+            title: 'Konfirmasi',
+            text: 'Apakah Anda yakin ingin menyimpan perubahan?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Ya',
+            cancelButtonText: 'Tidak'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Show success notification
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Berhasil!',
+                    text: 'Perubahan berhasil disimpan!',
+                    showConfirmButton: false,
+                    timer: 2000,
+                    didClose: () => {
+                        // Submit the form after the success notification is closed
+                        document.getElementById('updateForm').submit();
+                    }
+                });
+            }
+        });
+    }
+</script>
+
+<script>
     document.addEventListener("DOMContentLoaded", function() {
         var gambarPreview = document.getElementById('gambarPreview');
         var modal = document.getElementById("imageModal");
@@ -316,6 +360,19 @@
 
 <script>
     function handleFinishButtonClick() {
+        // Validate file size
+        const fileInput = document.getElementById('attachment_file');
+        const file = fileInput.files[0];
+        if (file && file.size > 15 * 1024 * 1024) { // 15 MB in bytes
+            Swal.fire({
+                icon: 'error',
+                title: 'File Terlalu Besar',
+                text: 'Ukuran file tidak boleh melebihi 15MB!',
+            });
+            fileInput.value = ''; // Clear the file input
+            return; // Stop further execution
+        }
+
         // Show SweetAlert confirmation
         Swal.fire({
             title: 'Konfirmasi',
