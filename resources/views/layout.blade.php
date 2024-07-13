@@ -35,6 +35,7 @@
 
     {{-- jadwal kunjungan calender --}}
     <link href="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.9.0/fullcalendar.min.css" rel="stylesheet" />
+    
 
 <body>
 
@@ -406,101 +407,138 @@
                         </a>
                     </li>
                 </ul>
+            </li>
+
+            @if (Auth::user()->role_id == 1 ||
+                    Auth::user()->role_id == 2 ||
+                    Auth::user()->role_id == 3 ||
+                    Auth::user()->role_id == 5 ||
+                    Auth::user()->role_id == 7 ||
+                    Auth::user()->role_id == 9 ||
+                    Auth::user()->role_id == 11 ||
+                    Auth::user()->role_id == 12 ||
+                    Auth::user()->role_id == 14 ||
+                    Auth::user()->role_id == 16 ||
+                    Auth::user()->role_id == 22 ||
+                    Auth::user()->role_id == 30 ||
+                    Auth::user()->role_id == 31||
+                    Auth::user()->role_id == 32)
+                <a class="nav-link collapsed" data-bs-target="#nav-approval-ss" data-bs-toggle="collapse"
+                    href="#">
+                    <i class="bi bi-layout-wtf"></i><span>Persetujuan</span><i class="bi bi-chevron-down ms-auto"></i>
+                </a>
+            @endif
+            <ul id="nav-approval-ss" class="nav-content collapse " data-bs-parent="#sidebar-nav">
+                @if (Auth::user()->role_id == 1 ||
+                        Auth::user()->role_id == 3 ||
+                        Auth::user()->role_id == 9 ||
+                        Auth::user()->role_id == 12 ||
+                        Auth::user()->role_id == 14 ||
+                        Auth::user()->role_id == 22 ||
+                        Auth::user()->role_id == 30 ||
+                        Auth::user()->role_id == 31 ||
+                        Auth::user()->role_id == 32)
+                    <li class="nav-item">
+                        <a class="nav-link collapsed" href="{{ route('showKonfirmasiForeman') }}">
+                            <i class="bi bi-kanban fs-6"></i>
+                            <span>By Sect. Head</span>
+                        </a>
+                    </li>
+                @endif
                 @if (Auth::user()->role_id == 1 ||
                         Auth::user()->role_id == 2 ||
                         Auth::user()->role_id == 3 ||
                         Auth::user()->role_id == 5 ||
+                        Auth::user()->role_id == 9 ||
+                        Auth::user()->role_id == 11 ||
+                        Auth::user()->role_id == 12 ||
+                        Auth::user()->role_id == 14 ||
+                        Auth::user()->role_id == 22 ||
+                        Auth::user()->role_id == 30 ||
+                        Auth::user()->role_id == 31 ||
+                        Auth::user()->role_id == 31)
+                    <li class="nav-item">
+                        <a class="nav-link collapsed" href="{{ route('showKonfirmasiDeptHead') }}">
+                            <i class="bi bi-kanban-fill fs-6"></i>
+                            <span>By Dept. Head</span>
+                        </a>
+                    </li>
+                @endif
+            </ul>
+
+            <li class="nav-heading">Knowledge Management</li>
+            @if (Auth::user()->role_id == 1 ||
+                    Auth::user()->role_id == 2 ||
+                    Auth::user()->role_id == 3 ||
+                    Auth::user()->role_id == 7 ||
+                    Auth::user()->role_id == 9 ||
+                    Auth::user()->role_id == 11 ||
+                    Auth::user()->role_id == 12 ||
+                    Auth::user()->role_id == 14 ||
+                    Auth::user()->role_id == 15 ||
+                    Auth::user()->role_id == 22 ||
+                    Auth::user()->role_id == 30 ||
+                    Auth::user()->role_id == 31)
+                <a class="nav-link collapsed" data-bs-target="#nav-km-pengajuan" data-bs-toggle="collapse"
+                    href="#">
+                    <i class="bi bi-layout-wtf"></i><span>Pengajuan Knowledge Management</span><i class="bi bi-chevron-down ms-auto"></i>
+                </a>
+            @endif
+            <ul id="nav-km-pengajuan" class="nav-content collapse " data-bs-parent="#sidebar-nav">
+                @if (Auth::user()->role_id == 1 ||
+                        Auth::user()->role_id == 2 ||
+                        Auth::user()->role_id == 3 ||
                         Auth::user()->role_id == 7 ||
                         Auth::user()->role_id == 9 ||
                         Auth::user()->role_id == 11 ||
                         Auth::user()->role_id == 12 ||
                         Auth::user()->role_id == 14 ||
-                        Auth::user()->role_id == 16 ||
+                        Auth::user()->role_id == 15 ||
                         Auth::user()->role_id == 22 ||
                         Auth::user()->role_id == 30 ||
                         Auth::user()->role_id == 31)
-                    <a class="nav-link collapsed" data-bs-target="#nav-conf" data-bs-toggle="collapse"
-                        href="#">
-                        <i class="bi bi-layout-wtf"></i><span>Persetujuan</span><i
-                            class="bi bi-chevron-down ms-auto"></i>
-                    </a>
+                    <li class="nav-item">
+                        <a class="nav-link collapsed" href="{{ route('pengajuanKM') }}">
+                            <i class="bi bi-kanban fs-6"></i>
+                            <span>Pengajuan Form Knowledge Management</span>
+                        </a>
+                    </li>
                 @endif
-                <ul id="nav-conf" class="nav-content collapse " data-bs-parent="#sidebar-nav">
-                    @if (Auth::user()->role_id == 1 ||
-                            Auth::user()->role_id == 3 ||
-                            Auth::user()->role_id == 9 ||
-                            Auth::user()->role_id == 12 ||
-                            Auth::user()->role_id == 14 ||
-                            Auth::user()->role_id == 22 ||
-                            Auth::user()->role_id == 30 ||
-                            Auth::user()->role_id == 31 ||
-                            Auth::user()->role_id == 16)
-                        <li class="nav-item">
-                            <a class="nav-link collapsed" href="{{ route('showKonfirmasiForeman') }}">
-                                <i class="bi bi-kanban fs-6"></i>
-                                <span>By Sect. Head</span>
-                            </a>
-                        </li>
-                    @endif
-                    @if (Auth::user()->role_id == 1 ||
-                            Auth::user()->role_id == 2 ||
-                            Auth::user()->role_id == 3 ||
-                            Auth::user()->role_id == 5 ||
-                            Auth::user()->role_id == 7 ||
-                            Auth::user()->role_id == 9 ||
-                            Auth::user()->role_id == 11 ||
-                            Auth::user()->role_id == 12 ||
-                            Auth::user()->role_id == 14 ||
-                            Auth::user()->role_id == 22 ||
-                            Auth::user()->role_id == 30 ||
-                            Auth::user()->role_id == 31)
-                        <li class="nav-item">
-                            <a class="nav-link collapsed" href="{{ route('showKonfirmasiDeptHead') }}">
-                                <i class="bi bi-kanban-fill fs-6"></i>
-                                <span>By Dept. Head</span>
-                            </a>
-                        </li>
-                    @endif
-                </ul>
+                @if (Auth::user()->role_id == 1 || Auth::user()->role_id == 14 || Auth::user()->role_id == 15)
+                    <li class="nav-item">
+                        <a class="nav-link collapsed" href="#">
+                            <i class="bi bi-kanban-fill fs-6"></i>
+                            <span>Persetujuan Knowledge Management</span>
+                        </a>
+                    </li>
+                @endif
+            </ul>
+            <ul id="nav-km-pic" class="nav-content collapse " data-bs-parent="#sidebar-nav">
                 @if (Auth::user()->role_id == 1 ||
                         Auth::user()->role_id == 5 ||
                         Auth::user()->role_id == 14 ||
-                        Auth::user()->role_id == 15 ||
-                        Auth::user()->role_id == 20)
-                    <a class="nav-link collapsed" data-bs-target="#nav-pic" data-bs-toggle="collapse"
-                        href="#">
-                        <i class="bi bi-layout-wtf"></i><span>PIC Penilaian</span><i
-                            class="bi bi-chevron-down ms-auto"></i>
-                    </a>
+                        Auth::user()->role_id == 15)
+                    <li class="nav-item">
+                        <a class="nav-link collapsed" href="#">
+                            <i class="bi-person-lines-fill fs-6"></i>
+                            <span>E-Book Knowledge Management</span>
+                        </a>
+                    </li>
                 @endif
-                <ul id="nav-pic" class="nav-content collapse " data-bs-parent="#sidebar-nav">
+                @if (Auth::user()->role_id == 1 ||
+                        Auth::user()->role_id == 14 ||
+                        Auth::user()->role_id == 15 ||
+                        Auth::user()->role_id == 16 ||
+                        Auth::user()->role_id == 20)
+                    <li class="nav-item">
+                        <a class="nav-link collapsed" href="#">
+                            <i class="bi-person-lines-fill fs-6"></i>
+                            <span>-</span>
+                        </a>
+                    </li>
+                @endif
+            </ul>
 
-                    @if (Auth::user()->role_id == 1 ||
-                            Auth::user()->role_id == 5 ||
-                            Auth::user()->role_id == 14 ||
-                            Auth::user()->role_id == 16 ||
-                            Auth::user()->role_id == 20)
-                        <li class="nav-item">
-                            <a class="nav-link collapsed" href="{{ route('showKonfirmasiKomite') }}">
-                                <i class="bi-person-lines-fill fs-6"></i>
-                                <span>PIC Penilai SS | Komite</span>
-                            </a>
-                        </li>
-                    @endif
-                    @if (Auth::user()->role_id == 1 ||
-                            Auth::user()->role_id == 14 ||
-                            Auth::user()->role_id == 15 ||
-                            Auth::user()->role_id == 16 ||
-                            Auth::user()->role_id == 20)
-                        <li class="nav-item">
-                            <a class="nav-link collapsed" href="{{ route('showKonfirmasiHRGA') }}">
-                                <i class="bi-person-lines-fill fs-6"></i>
-                                <span>PIC Penilai SS | HRGA</span>
-                            </a>
-                        </li>
-                    @endif
-                </ul>
-            </li>
             @if (Auth::user()->role_id == 1)
                 <li class="nav-heading">Safety Patrol</li>
                 <li class="nav-item">
