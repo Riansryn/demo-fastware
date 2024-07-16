@@ -17,12 +17,11 @@
                 <div class="card">
                     <div class="card-body">
                         <h5 class="card-title">Data Form Perbaikan</h5>
-                        @if (Auth::user()->role_id == 1 ||
-                                Auth::user()->role_id == 7 ||
-                                Auth::user()->role_id == 8 ||
-                                Auth::user()->role_id == 9 ||
-                                Auth::user()->role_id == 30 ||
-                                Auth::user()->role_id == 31)
+                        {{-- @if (Auth::user()->role_id == 1 || Auth::user()->role_id == 5 || Auth::user()->role_id == 8 || Auth::user()->role_id == 9 || Auth::user()->role_id == 14 || Auth::user()->role_id == 22 || Auth::user()->role_id == 30 || Auth::user()->role_id == 31 || Auth::user()->role_id == 42 || Auth::user()->role_id == 45 || Auth::user()->role_id == 51 || Auth::user()->role_id == 48) --}}
+                        @php
+                            $acsrole = [1, 5, 8, 9, 14, 22, 30, 31, 42, 45, 51, 48];
+                        @endphp
+                        @if (in_array(Auth::user()->role_id, $acsrole))
                             <div class="text-right mb-3">
                                 <a class="btn btn-success float-right" href="{{ route('formperbaikans.create') }}"> <i
                                         class="bi bi-file-earmark-plus"></i> Buat Form
