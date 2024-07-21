@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasMany; 
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class InquirySales extends Model
 {
@@ -12,6 +12,8 @@ class InquirySales extends Model
 
     protected $table = 'inquiry_sales'; // Pastikan nama tabel benar
     protected $fillable = [
+        'id_type',
+        'id_customer',
         'kode_inquiry',
         'jenis_inquiry',
         'supplier',
@@ -28,5 +30,10 @@ class InquirySales extends Model
     public function details()
     {
         return $this->hasMany(DetailInquiry::class, 'id_inquiry');
+    }
+
+    public function customer(): BelongsTo
+    {
+        return $this->belongsTo(Customer::class, 'id_customer');
     }
 }

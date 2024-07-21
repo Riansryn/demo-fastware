@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class DetailInquiry extends Model
 {
@@ -12,6 +13,7 @@ class DetailInquiry extends Model
     protected $table = 'detail_inquiry'; // Pastikan nama tabel benar
     protected $fillable = [
         'id_inquiry',
+        'id_type',
         'nama_material',
         'jenis',
         'thickness',
@@ -21,10 +23,18 @@ class DetailInquiry extends Model
         'length',
         'qty',
         'pcs',
+        'konfirmasi',
+        'no_po',
+        'rencana_kedatangan',
     ];
 
     public function inquirySale()
     {
         return $this->belongsTo(InquirySales::class);
+    }
+
+    public function type_materials(): BelongsTo
+    {
+        return $this->belongsTo(TypeMaterial::class, 'id_type');
     }
 }

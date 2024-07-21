@@ -18,8 +18,6 @@
                                             <th scope="col">Kode Inq.</th>
                                             <th scope="col">Order From</th>
                                             <th scope="col">Create By</th>
-                                            <th scope="col" class="text-center">To Approve</th>
-                                            <th scope="col" class="text-center">To Validate</th>
                                             <th scope="col">Note</th>
                                             <th scope="col">File</th>
                                             <th scope="col" class="text-center">is Active</th>
@@ -32,21 +30,14 @@
                                                 <tr>
                                                     <th scope="row">{{ $loop->iteration }}</th>
                                                     <td>{{ $inquiry->kode_inquiry }}</td>
-                                                    
-                                                    <td>{{ $inquiry->order_from }}</td>
+                                                    <td>
+                                                        @if ($inquiry->customer)
+                                                            {{ $inquiry->customer->name_customer }}
+                                                        @else
+                                                            N/A
+                                                        @endif
+                                                    </td>
                                                     <td>{{ $inquiry->create_by }}</td>
-                                                    <td class="text-center">
-                                                        <button
-                                                            class="btn btn-sm text-center {{ $inquiry->to_approve == 'Waiting' ? 'btn-warning' : ($inquiry->to_approve == 'Approved' ? 'btn-success' : 'btn-danger') }}">
-                                                            {{ $inquiry->to_approve }}
-                                                        </button>
-                                                    </td>
-                                                    <td class="text-center">
-                                                        <button
-                                                            class="btn btn-sm {{ $inquiry->to_validate == 'Waiting' ? 'btn-warning' : ($inquiry->to_validate == 'Validated' ? 'btn-success' : 'btn-danger') }}">
-                                                            {{ $inquiry->to_validate }}
-                                                        </button>
-                                                    </td>
                                                     <td>{{ $inquiry->note }}</td>
                                                     <td>
                                                         @if ($inquiry->attach_file)
@@ -102,8 +93,6 @@
                                             <th scope="col">Kode Inq.</th>
                                             <th scope="col">Order From</th>
                                             <th scope="col">Create By</th>
-                                            <th scope="col" class="text-center">To Approve</th>
-                                            <th scope="col" class="text-center">To Validate</th>
                                             <th scope="col">Note</th>
                                             <th scope="col">File</th>
                                             <th scope="col" class="text-center">is Active</th>
@@ -112,24 +101,18 @@
                                     </thead>
                                     <tbody>
                                         @foreach ($inquiries as $inquiry)
-                                            @if ($inquiry->status == 0 || $inquiry->status == 4)
+                                            @if ($inquiry->status == 0 || $inquiry->status == 4 || $inquiry->status == 5 || $inquiry->status == 6)
                                                 <tr>
                                                     <th scope="row">{{ $loop->iteration }}</th>
                                                     <td>{{ $inquiry->kode_inquiry }}</td>
-                                                    <td>{{ $inquiry->order_from }}</td>
+                                                    <td>
+                                                        @if ($inquiry->customer)
+                                                            {{ $inquiry->customer->name_customer }}
+                                                        @else
+                                                            N/A
+                                                        @endif
+                                                    </td>
                                                     <td>{{ $inquiry->create_by }}</td>
-                                                    <td class="text-center">
-                                                        <button
-                                                            class="btn btn-sm text-center {{ $inquiry->to_approve == 'Waiting' ? 'btn-warning' : ($inquiry->to_approve == 'Approved' ? 'btn-success' : 'btn-danger') }}">
-                                                            {{ $inquiry->to_approve }}
-                                                        </button>
-                                                    </td>
-                                                    <td class="text-center">
-                                                        <button
-                                                            class="btn btn-sm {{ $inquiry->to_validate == 'Waiting' ? 'btn-warning' : ($inquiry->to_validate == 'Validated' ? 'btn-success' : 'btn-danger') }}">
-                                                            {{ $inquiry->to_validate }}
-                                                        </button>
-                                                    </td>
                                                     <td>{{ $inquiry->note }}</td>
                                                     <td>
                                                         @if ($inquiry->attach_file)
@@ -175,7 +158,6 @@
                     </div>
                 </div>
             </div>
-
             <div class="modal fade" id="viewInquiryModal" tabindex="-1" aria-labelledby="viewInquiryModalLabel"
                 aria-hidden="true">
                 <div class="modal-dialog">
@@ -185,14 +167,14 @@
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
                         <div class="modal-body">
-                            <form id="viewInquiryForm" action="{{ route('approvedInquiry', ['id' => $inquiry->id]) }}"
-                                method="POST" enctype="multipart/form-data">
+                            <form id="viewInquiryForm" action="{{ route('validateInquiry', ['id' => ':id']) }}"
+                                method="POST">
                                 @csrf
                                 @method('PUT')
                                 <input type="hidden" id="viewInquiryId" name="inquiry_id">
                                 <input type="hidden" id="action_type" name="action_type">
                                 <div class="mb-3">
-                                    <label for="viewjenis_inquiry" class="form-label">Kode Inquiry</label>
+                                    <label for="viewkode_inquiry" class="form-label">Kode Inquiry</label>
                                     <input type="text" class="form-control" id="viewkode_inquiry" name="kode_inquiry"
                                         required disabled>
                                 </div>
@@ -204,16 +186,15 @@
                                 <div class="modal-footer">
                                     <button type="button" class="btn btn-secondary"
                                         data-bs-dismiss="modal">Close</button>
-                                    <button type="submit" class="btn btn-primary"
-                                        onclick="setActionType('approved')">Approved</button>
-                                    <button type="submit" class="btn btn-danger"
-                                        onclick="setActionType('not_approved')">Not Approved</button>
+                                    <button type="button" class="btn btn-primary"
+                                        onclick="submitForm('approved')">Approved</button>
+                                    <button type="button" class="btn btn-danger"
+                                        onclick="submitForm('not_approved')">Not Approved</button>
                                 </div>
                             </form>
                         </div>
                     </div>
                 </div>
-            </div>
             </div>
             </div>
         </section>
@@ -256,7 +237,6 @@
             });
 
             function openViewInquiryModal(id) {
-                console.log('Opening modal for inquiry ID: ' + id); // Debugging log
                 $.ajax({
                     url: '{{ route('editInquiry', ['id' => ':id']) }}'.replace(':id', id),
                     type: 'GET',
@@ -266,46 +246,12 @@
                         // Isi form modal dengan data yang diperoleh
                         $('#viewkode_inquiry').val(response.kode_inquiry);
                         $('#viewjenis_inquiry').val(response.jenis_inquiry);
-                        $('#viewtype').val(response.type);
-                        $('#viewsize').val(response.size);
-                        $('#viewsupplier').val(response.supplier);
-                        $('#viewqty').val(response.qty);
-                        $('#vieworder_from').val(response.order_from);
-                        $('#viewcreate_by').val(response.create_by);
-                        $('#viewto_approve').val(response.to_approve);
-                        $('#viewto_validate').val(response.to_validate);
-                        $('#viewnote').val(response.note);
+                        $('#vieworder_from').val(response.customer_name); // Update this line
                         $('#viewInquiryId').val(response.id);
 
                         // Update form action URL dengan ID
                         $('#viewInquiryForm').attr('action', '{{ route('approvedInquiry', ['id' => ':id']) }}'
                             .replace(':id', response.id));
-
-                        if (response.attach_file) {
-                            // Display the attached file (image or other)
-                            var fileExtension = response.attach_file.split('.').pop().toLowerCase();
-                            var fileLink = '{{ asset('assets/files/') }}/' + response.attach_file;
-
-                            if (['jpg', 'jpeg', 'png'].includes(fileExtension)) {
-                                $('#viewImagePreview').attr('src', fileLink).attr('width', '150').attr('height',
-                                    '150').show();
-                                $('#viewFilePreview').hide();
-                                $('#viewFileName').text('');
-                                $('#viewImagePreview').click(function() {
-                                    showImageInModal(fileLink);
-                                });
-                            } else {
-                                $('#viewImagePreview').hide();
-                                $('#viewFilePreview').attr('href', fileLink).attr('download', response.attach_file)
-                                    .show();
-                                $('#viewFileName').text(response.attach_file);
-                            }
-                        } else {
-                            // Jika tidak ada file terlampir
-                            $('#viewImagePreview').hide();
-                            $('#viewFilePreview').hide();
-                            $('#viewFileName').text('');
-                        }
 
                         // Display modal
                         $('#viewInquiryModal').modal('show');
@@ -317,8 +263,13 @@
                 });
             }
 
+            function submitForm(actionType) {
+                $('#action_type').val(actionType);
+                $('#viewInquiryForm').submit();
+            }
+
             function setActionType(actionType) {
-                document.getElementById('action_type').value = actionType;
+                $('#action_type').val(actionType);
             }
         </script>
     </main><!-- End #main -->

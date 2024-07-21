@@ -1,7 +1,39 @@
 @extends('layout')
 
 @section('content')
+
     <main id="main" class="main">
+
+        <style>
+            .searchable-dropdown {
+                position: relative;
+            }
+
+            .searchable-dropdown input {
+                width: 100%;
+                box-sizing: border-box;
+            }
+
+            .dropdown-items {
+                display: none;
+                position: absolute;
+                background-color: white;
+                border: 1px solid #ddd;
+                max-height: 200px;
+                overflow-y: auto;
+                z-index: 1000;
+            }
+
+            .dropdown-items div {
+                padding: 8px;
+                cursor: pointer;
+            }
+
+            .dropdown-items div:hover {
+                background-color: #f1f1f1;
+            }
+        </style>
+
 
         <div class="pagetitle">
             <h1>Halaman Inquiry</h1>
@@ -17,7 +49,6 @@
                     <h5 class="card-title">Tampilan Data Inquiry Sales</h5>
                     <button class="btn btn-primary btn-sm mb-3" data-bs-toggle="modal" data-bs-target="#inquiryModal">Form
                         Inquiry</button>
-                    <button id="exportReportBtn" class="btn btn-warning btn-sm mb-3">Report</button>
 
                     <!-- Table with stripped rows -->
                     @if ($inquiries->isEmpty())
@@ -32,8 +63,6 @@
                                         {{-- <th scope="col">Supplier</th> --}}
                                         <th scope="col">Order From</th>
                                         <th scope="col">Create By</th>
-                                        <th scope="col" class="text-center">To Approve</th>
-                                        <th scope="col" class="text-center">To Validate</th>
                                         <th scope="col">Note</th>
                                         <th scope="col">File</th>
                                         <th scope="col">is Active</th>
@@ -45,28 +74,17 @@
                                         <tr>
                                             <th scope="row">{{ $loop->iteration }}</th>
                                             <td>{{ $inquiry->kode_inquiry }}</td>
-                                            {{-- <td>{{ $inquiry->supplier }}</td> --}}
-                                            <td>{{ $inquiry->order_from }}</td>
+                                            <td>{{ $inquiry->customer ? $inquiry->customer->name_customer : 'N/A' }}</td>
                                             <td>{{ $inquiry->create_by }}</td>
-                                            <td class="text-center">
-                                                <button
-                                                    class="btn btn-sm text-center {{ $inquiry->to_approve == 'Waiting' ? 'btn-warning' : ($inquiry->to_approve == 'Approved' ? 'btn-success' : 'btn-danger') }}">
-                                                    {{ $inquiry->to_approve }}
-                                                </button>
-                                            </td>
-                                            <td class="text-center">
-                                                <button
-                                                    class="btn btn-sm {{ $inquiry->to_validate == 'Waiting' ? 'btn-warning' : ($inquiry->to_validate == 'Validated' ? 'btn-success' : 'btn-danger') }}">
-                                                    {{ $inquiry->to_validate }}
-                                                </button>
-                                            </td>
                                             <td>{{ $inquiry->note }}</td>
                                             <td>
                                                 @if ($inquiry->attach_file)
                                                     <a href="{{ asset('assets/files/' . $inquiry->attach_file) }}"
-                                                        target="_blank">View File</a>
+                                                        target="_blank">
+                                                        <i class="fas fa-file-alt"></i>
+                                                    </a>
                                                 @else
-                                                    No File
+                                                    <i class="fas fa-times"></i> No File
                                                 @endif
                                             </td>
                                             <td>
@@ -80,7 +98,7 @@
                                             <td>
                                                 @if (
                                                     $inquiry->status != 0 &&
-                                                    $inquiry->status != 1 &&
+                                                        $inquiry->status != 1 &&
                                                         $inquiry->status != 3 &&
                                                         $inquiry->status != 4 &&
                                                         $inquiry->status != 5 &&
@@ -94,16 +112,18 @@
                                                         <i class="bi bi-trash-fill"
                                                             onclick="deleteInquiry({{ $inquiry->id }})"></i>
                                                     </a>
-                                                    <a class="btn btn-info mt-1" href="{{ route('formulirInquiry', ['id' => $inquiry->id]) }}"
+                                                    <a class="btn btn-info mt-1"
+                                                        href="{{ route('formulirInquiry', ['id' => $inquiry->id]) }}"
                                                         title="Formulir Inquiry">
-                                                         <i class="bi bi-file-earmark-arrow-up-fill"></i>
-                                                     </a>
+                                                        <i class="bi bi-file-earmark-arrow-up-fill"></i>
+                                                    </a>
                                                 @endif
 
-                                                <a class="btn btn-warning mt-1" title="View Form" href="{{ route('historyFormSS', $inquiry->id) }}">
+                                                <a class="btn btn-warning mt-1" title="View Form"
+                                                    href="{{ route('historyFormSS', $inquiry->id) }}">
                                                     <i class="bi bi-eye-fill"></i>
                                                 </a>
-                                                
+
                                             </td>
                                         </tr>
                                     @endforeach
@@ -134,14 +154,18 @@
                                             <option value="SPOR">SPOR</option>
                                         </select>
                                     </div>
-                                    {{-- <div class="mb-3">
-                                        <label for="supplier" class="form-label">Supplier</label>
-                                        <input type="text" class="form-control" id="supplier" name="supplier" required>
-                                    </div> --}}
                                     <div class="mb-3">
-                                        <label for="order_from" class="form-label">Order From</label>
-                                        <input type="text" class="form-control" id="order_from" name="order_from"
-                                            required>
+                                        <label for="id_customer" class="form-label">Order from</label>
+                                        <div class="searchable-dropdown">
+                                            <input type="text" id="search_customer" placeholder="Select Customer">
+                                            <div class="dropdown-items" id="customer_list">
+                                                @foreach ($customers as $customer)
+                                                    <div data-value="{{ $customer->id }}">{{ $customer->name_customer }}
+                                                    </div>
+                                                @endforeach
+                                            </div>
+                                        </div>
+                                        <input type="hidden" id="id_customer" name="id_customer" required>
                                     </div>
                                     <div class="modal-footer">
                                         <button type="button" class="btn btn-secondary"
@@ -154,8 +178,6 @@
                     </div>
                 </div>
                 <!-- End Modal -->
-
-                <!-- Edit Inquiry Modal -->
                 <div class="modal fade" id="editInquiryModal" tabindex="-1" aria-labelledby="editInquiryModalLabel"
                     aria-hidden="true">
                     <div class="modal-dialog">
@@ -179,15 +201,18 @@
                                             <option value="SPOR">SPOR</option>
                                         </select>
                                     </div>
-                                    {{-- <div class="mb-3">
-                                        <label for="editsupplier" class="form-label">Supplier</label>
-                                        <input type="text" class="form-control" id="editsupplier" name="supplier"
-                                            required>
-                                    </div> --}}
-                                    <div class="mb-3">
-                                        <label for="editorder_from" class="form-label">Order From</label>
-                                        <input type="text" class="form-control" id="editorder_from" name="order_from"
-                                            required>
+                                    <div class="mb-3 edit-searchable-dropdown">
+                                        <label for="search_edit_customer" class="form-label">Order from</label>
+                                        <input type="text" class="form-control" id="search_edit_customer"
+                                            placeholder="Search customer...">
+                                        <div id="edit_customer_list" class="dropdown-menu show"
+                                            style="width: 100%; display: none; max-height: 200px; overflow-y: auto;">
+                                            @foreach ($customers as $customer)
+                                                <div class="dropdown-item" data-value="{{ $customer->id }}">
+                                                    {{ $customer->name_customer }}</div>
+                                            @endforeach
+                                        </div>
+                                        <input type="hidden" id="edit_id_customer" name="id_customer">
                                     </div>
                                     <div class="modal-footer">
                                         <button type="button" class="btn btn-secondary"
@@ -199,6 +224,7 @@
                         </div>
                     </div>
                 </div>
+
                 <!-- End Edit Inquiry Modal -->
             </div>
             </div>
@@ -212,7 +238,127 @@
         <!-- SimpleDataTables JS -->
         <script src="{{ asset('assets/vendor/simple-datatables/simple-datatables.js') }}"></script>
 
+
         <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const searchInput = document.getElementById('search_customer');
+                const customerList = document.getElementById('customer_list');
+                const hiddenInput = document.getElementById('id_customer');
+
+                searchInput.addEventListener('input', function() {
+                    const filter = searchInput.value.toLowerCase();
+                    const items = customerList.getElementsByTagName('div');
+
+                    for (let i = 0; i < items.length; i++) {
+                        const txtValue = items[i].textContent || items[i].innerText;
+                        if (txtValue.toLowerCase().indexOf(filter) > -1) {
+                            items[i].style.display = '';
+                        } else {
+                            items[i].style.display = 'none';
+                        }
+                    }
+                });
+
+                customerList.addEventListener('click', function(e) {
+                    if (e.target && e.target.matches('div[data-value]')) {
+                        const selectedValue = e.target.getAttribute('data-value');
+                        const selectedText = e.target.textContent;
+                        searchInput.value = selectedText;
+                        hiddenInput.value = selectedValue;
+                        customerList.style.display = 'none';
+                    }
+                });
+
+                searchInput.addEventListener('focus', function() {
+                    customerList.style.display = 'block';
+                });
+
+                document.addEventListener('click', function(e) {
+                    if (!e.target.closest('.searchable-dropdown')) {
+                        customerList.style.display = 'none';
+                    }
+                });
+            });
+
+            document.addEventListener('DOMContentLoaded', function() {
+                const searchEditInput = document.getElementById('search_edit_customer');
+                const editDropdown = document.getElementById('edit_customer_list');
+                const hiddenEditInput = document.getElementById('edit_id_customer');
+                const editItems = editDropdown.querySelectorAll('.dropdown-item');
+
+                searchEditInput.addEventListener('input', function() {
+                    const filter = searchEditInput.value.toLowerCase();
+                    let hasVisibleItems = false;
+
+                    editItems.forEach(function(item) {
+                        const text = item.textContent.toLowerCase();
+                        if (text.includes(filter)) {
+                            item.style.display = 'block';
+                            hasVisibleItems = true;
+                        } else {
+                            item.style.display = 'none';
+                        }
+                    });
+
+                    editDropdown.style.display = hasVisibleItems ? 'block' : 'none';
+                });
+
+                editItems.forEach(function(item) {
+                    item.addEventListener('click', function() {
+                        searchEditInput.value = item.textContent;
+                        hiddenEditInput.value = item.getAttribute('data-value');
+                        editDropdown.style.display = 'none';
+                    });
+                });
+
+                document.addEventListener('click', function(event) {
+                    if (!event.target.closest('.edit-searchable-dropdown')) {
+                        editDropdown.style.display = 'none';
+                    }
+                });
+            });
+
+            function openEditInquiryModal(id) {
+                console.log('Opening modal for inquiry ID: ' + id);
+                $.ajax({
+                    url: '{{ route('editInquiry', ['id' => ':id']) }}'.replace(':id', id),
+                    type: 'GET',
+                    success: function(response) {
+                        console.log('Response:', response);
+
+                        // Populate the form with the received data
+                        $('#editjenis_inquiry').val(response.jenis_inquiry);
+                        $('#search_edit_customer').val(response
+                            .customer_name); // Assuming the response contains customer_name
+                        $('#edit_id_customer').val(response.id_customer); // Set the hidden input value
+                        $('#editInquiryId').val(response.id);
+
+                        // Populate the customer dropdown
+                        const editDropdown = $('#edit_customer_list');
+                        editDropdown.empty(); // Clear existing options
+                        response.customers.forEach(customer => {
+                            const item = $('<div>').addClass('dropdown-item').attr('data-value', customer
+                                .id).text(customer.name_customer);
+                            item.on('click', function() {
+                                $('#search_edit_customer').val(customer.name_customer);
+                                $('#edit_id_customer').val(customer.id);
+                                editDropdown.hide();
+                            });
+                            editDropdown.append(item);
+                        });
+
+                        // Set the current customer name in the search input
+                        $('#search_edit_customer').val(response.customer_name);
+
+                        // Show the modal
+                        $('#editInquiryModal').modal('show');
+                    },
+                    error: function(xhr) {
+                        console.log(xhr.responseText);
+                    }
+                });
+            }
+
             document.addEventListener('DOMContentLoaded', function() {
                 const dataTable = new simpleDatatables.DataTable("#inquiryTable", {
                     searchable: true, // Aktifkan fitur pencarian
@@ -240,64 +386,6 @@
                     }
                 });
             });
-
-            function openEditInquiryModal(id) {
-                console.log('Opening modal for inquiry ID: ' + id); // Debugging log
-                $.ajax({
-                    url: '{{ route('editInquiry', ['id' => ':id']) }}'.replace(':id', id),
-                    type: 'GET',
-                    success: function(response) {
-                        console.log('Response:', response); // Debugging log
-
-                        // Isi form modal dengan data yang diperoleh
-                        $('#editkode_inquiry').val(response.kode_inquiry);
-                        $('#editsupplier').val(response.supplier);
-                        $('#editorder_from').val(response.order_from);
-                        $('#editcreate_by').val(response.create_by);
-                        $('#editto_approve').val(response.to_approve);
-                        $('#editto_validate').val(response.to_validate);
-                        $('#editnote').val(response.note);
-                        $('#editInquiryId').val(response.id);
-
-                        // Update form action URL dengan ID
-                        $('#editInquiryForm').attr('action', '{{ route('updateinquiry', ['id' => ':id']) }}'
-                            .replace(':id', response.id));
-
-                        if (response.attach_file) {
-                            // Display the attached file (image or other)
-                            var fileExtension = response.attach_file.split('.').pop().toLowerCase();
-                            var fileLink = '{{ asset('assets/files/') }}/' + response.attach_file;
-
-                            if (['jpg', 'jpeg', 'png'].includes(fileExtension)) {
-                                $('#editImagePreview').attr('src', fileLink).attr('width', '150').attr('height',
-                                    '150').show();
-                                $('#editFilePreview').hide();
-                                $('#editFileName').text('');
-                                $('#editImagePreview').click(function() {
-                                    showImageInModal(fileLink);
-                                });
-                            } else {
-                                $('#editImagePreview').hide();
-                                $('#editFilePreview').attr('href', fileLink).attr('download', response.attach_file)
-                                    .show();
-                                $('#editFileName').text(response.attach_file);
-                            }
-                        } else {
-                            // Jika tidak ada file terlampir
-                            $('#editImagePreview').hide();
-                            $('#editFilePreview').hide();
-                            $('#editFileName').text('');
-                        }
-
-                        // Display modal
-                        $('#editInquiryModal').modal('show');
-                    },
-                    error: function(xhr) {
-                        // Handle error
-                        console.log(xhr.responseText);
-                    }
-                });
-            }
 
             //delete
             function deleteInquiry(id) {

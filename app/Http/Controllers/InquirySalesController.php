@@ -2,110 +2,180 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\DetailInquiry; // Impor model InquirySales
+use App\Models\Customer; // Impor model InquirySales
+use App\Models\DetailInquiry;
 use App\Models\InquirySales;
+use App\Models\TypeMaterial;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class InquirySalesController extends Controller
 {
     public function createInquirySales()
     {
         $statuses = [0, 1, 2, 3, 1, 4, 5, 6, 7];
-        $inquiries = InquirySales::whereIn('status', $statuses)
+        $inquiries = InquirySales::with('customer')
+            ->whereIn('status', $statuses)
             ->orderByRaw('FIELD(status, 2, 3, 1, 0, 4, 5, 6, 7)')
             ->get()
             ->unique('kode_inquiry');
 
-        return view('inquiry.create', compact('inquiries'));
+        $customers = Customer::all(); // Ambil semua data pelanggan
+
+        return view('inquiry.create', compact('inquiries', 'customers'));
     }
 
     public function showFormSS($id)
     {
-        // Cari inquiry berdasarkan ID
-        $inquiry = InquirySales::findOrFail($id);
+        $inquiry = InquirySales::with('details.type_materials')->findOrFail($id);
 
-        // Cari semua detail inquiry berdasarkan id_inquiry dari inquiry utama
-        $materials = DetailInquiry::where('id_inquiry', $inquiry->id)->get();
+        // Fetch all detail inquiries based on id_inquiry from the main inquiry
+        $materials = DetailInquiry::where('id_inquiry', $inquiry->id)->with('type_materials')->get();
 
-        return view('inquiry.showFormSS', compact('inquiry', 'materials'));
+        $typeMaterials = TypeMaterial::all(); // Ambil semua data TypeMaterial, sesuaikan dengan kebutuhan
+
+        return view('inquiry.showFormSS', compact('inquiry', 'materials', 'typeMaterials'));
     }
 
     public function historyFormSS($id)
     {
-        // Cari inquiry berdasarkan ID
-        $inquiry = InquirySales::findOrFail($id);
+        $inquiry = InquirySales::with('details.type_materials')->findOrFail($id);
 
-        // Cari semua detail inquiry berdasarkan id_inquiry dari inquiry utama
-        $materials = DetailInquiry::where('id_inquiry', $inquiry->id)->get();
+        // Fetch all detail inquiries based on id_inquiry from the main inquiry
+        $materials = DetailInquiry::where('id_inquiry', $inquiry->id)->with('type_materials')->get();
 
-        return view('inquiry.historyFormSS', compact('inquiry', 'materials'));
+        $typeMaterials = TypeMaterial::all(); // Ambil semua data TypeMaterial, sesuaikan dengan kebutuhan
+
+        return view('inquiry.historyFormSS', compact('inquiry', 'materials', 'typeMaterials'));
     }
 
     public function konfirmInquiry()
     {
         $statuses = [3, 1, 4, 5, 6, 7];
-        $inquiries = InquirySales::whereIn('status', $statuses)
+        $inquiries = InquirySales::with('customer', 'details.type_materials')
+            ->whereIn('status', $statuses)
             ->orderByRaw('FIELD(status, 3, 1, 4, 5, 6, 7)')
             ->get();
 
-        return view('inquiry.konfirmInquiry', compact('inquiries'));
+        // Ambil semua data TypeMaterial, sesuaikan dengan kebutuhan
+        $typeMaterials = TypeMaterial::all();
+        $customers = Customer::all(); // Ambil semua data pelanggan
+
+        // Variabel untuk menyimpan semua detail inquiries
+        $allMaterials = [];
+
+        // Loop untuk setiap inquiry dalam $inquiries
+        foreach ($inquiries as $inquiry) {
+            // Fetch all detail inquiries based on id_inquiry from the main inquiry
+            $materials = DetailInquiry::where('id_inquiry', $inquiry->id)
+                ->with('type_materials')
+                ->get();
+
+            // Tambahkan ke dalam array $allMaterials
+            $allMaterials[$inquiry->id] = $materials;
+        }
+
+        return view('inquiry.konfirmInquiry', compact('inquiries', 'allMaterials', 'typeMaterials', 'customers'));
     }
 
     public function validasiInquiry()
     {
-        $statuses = [2, 3, 1, 4, 5, 6, 7];
-        $inquiries = InquirySales::whereIn('status', $statuses)
-            ->orderByRaw('FIELD(status, 2, 3, 1, 0, 4, 5, 6, 7)')
+        $statuses = [3, 1, 4, 5, 6, 7];
+        $inquiries = InquirySales::with('customer', 'details.type_materials')
+            ->whereIn('status', $statuses)
+            ->orderByRaw('FIELD(status, 3, 1, 4, 5, 6, 7)')
             ->get();
 
-        return view('inquiry.validasi', compact('inquiries'));
+        // Ambil semua data TypeMaterial, sesuaikan dengan kebutuhan
+        $typeMaterials = TypeMaterial::all();
+        $customers = Customer::all(); // Ambil semua data pelanggan
+
+        // Variabel untuk menyimpan semua detail inquiries
+        $allMaterials = [];
+
+        // Loop untuk setiap inquiry dalam $inquiries
+        foreach ($inquiries as $inquiry) {
+            // Fetch all detail inquiries based on id_inquiry from the main inquiry
+            $materials = DetailInquiry::where('id_inquiry', $inquiry->id)
+                ->with('type_materials')
+                ->get();
+
+            // Tambahkan ke dalam array $allMaterials
+            $allMaterials[$inquiry->id] = $materials;
+        }
+
+        return view('inquiry.validasi', compact('inquiries', 'allMaterials', 'typeMaterials', 'customers'));
     }
 
     public function reportInquiry()
     {
-        $statuses = [2, 3, 1, 4, 5, 6, 7];
-        $inquiries = InquirySales::whereIn('status', $statuses)
-            ->orderByRaw('FIELD(status, 2, 3, 1, 0, 4, 5, 6, 7)')
+        $statuses = [1, 3, 4, 5, 6, 7];
+        $inquiries = InquirySales::with('customer', 'details.type_materials')
+            ->whereIn('status', $statuses)
+            ->orderByRaw('FIELD(status, 3, 4, 1, 5, 6, 7)')
             ->get();
+
+        // Ambil semua data TypeMaterial, sesuaikan dengan kebutuhan
+        $typeMaterials = TypeMaterial::all();
+        $customers = Customer::all(); // Ambil semua data pelanggan
+
+        // Variabel untuk menyimpan semua detail inquiries
+        $allMaterials = [];
+
+        // Loop untuk setiap inquiry dalam $inquiries
+        foreach ($inquiries as $inquiry) {
+            // Fetch all detail inquiries based on id_inquiry from the main inquiry
+            $materials = DetailInquiry::where('id_inquiry', $inquiry->id)
+                ->with('type_materials')
+                ->get();
+
+            // Tambahkan ke dalam array $allMaterials
+            $allMaterials[$inquiry->id] = $materials;
+        }
 
         return view('inquiry.report', compact('inquiries'));
     }
 
     public function formulirInquiry($id)
     {
-        $inquiry = InquirySales::findOrFail($id);
+        $inquiry = InquirySales::with('details.type_materials')->findOrFail($id);
+        $materials = DetailInquiry::where('id_inquiry', $inquiry->id)->with('type_materials')->get();
+        $typeMaterials = TypeMaterial::all();
 
-        // Cari semua detail inquiry berdasarkan id_inquiry dari inquiry utama
-        $materials = DetailInquiry::where('id_inquiry', $inquiry->id)->get();
+        return view('inquiry.formulirInquiry', compact('inquiry', 'materials', 'typeMaterials'));
+    }
 
-        return view('inquiry.formulirInquiry', compact('inquiry', 'materials'));
+    public function tindakLanjutInquiry($id)
+    {
+        $inquiry = InquirySales::with('details.type_materials')->findOrFail($id);
+        $materials = DetailInquiry::where('id_inquiry', $inquiry->id)->with('type_materials')->get();
+        $typeMaterials = TypeMaterial::all();
+
+        return view('inquiry.tindakLanjutInquiry', compact('inquiry', 'materials', 'typeMaterials'));
     }
 
     public function storeInquirySales(Request $request)
     {
         $request->validate([
             'jenis_inquiry' => 'required',
-            'order_from' => 'required',
+            'id_customer' => 'required',
         ]);
 
-        // Menghasilkan kode inquiry
+        // Generate inquiry code
         $jenisInquiry = $request->jenis_inquiry;
         $currentMonth = Carbon::now()->format('m');
         $currentYear = Carbon::now()->format('Y');
 
-        // Cek apakah ada inquiry yang sudah ada dengan kombinasi jenis_inquiry, supplier, dan order_from yang sama
+        // Check if there's an existing inquiry with the same combination
         $lastInquiry = InquirySales::where('jenis_inquiry', $jenisInquiry)
-            ->where('order_from', $request->order_from)
+            ->where('id_customer', $request->id_customer)
             ->first();
 
         if ($lastInquiry) {
-            // Jika sudah ada inquiry dengan kombinasi yang sama, kita tidak akan membuat yang baru
-            // Tergantung pada kebutuhan Anda, Anda mungkin akan memperbarui inquiry yang sudah ada di sini
-            return redirect()->route('createinquiry')->with('info', 'Inquiry dengan kombinasi yang sama sudah ada.');
+            return redirect()->route('createinquiry')->with('info', 'Inquiry with the same combination already exists.');
         } else {
-            // Jika belum ada inquiry dengan kombinasi yang sama, buat inquiry baru
             $lastKodeInquiry = InquirySales::where('jenis_inquiry', $jenisInquiry)
                 ->whereYear('created_at', $currentYear)
                 ->whereMonth('created_at', $currentMonth)
@@ -122,8 +192,8 @@ class InquirySalesController extends Controller
 
             $inquiry = new InquirySales();
             $inquiry->kode_inquiry = $kodeInquiry;
-            $inquiry->jenis_inquiry = $jenisInquiry; // Menambahkan baris ini untuk menyimpan jenis_inquiry
-            $inquiry->order_from = $request->order_from;
+            $inquiry->jenis_inquiry = $jenisInquiry;
+            $inquiry->id_customer = $request->id_customer;
             $inquiry->to_approve = 'Waiting';
             $inquiry->to_validate = 'Waiting';
             $inquiry->status = 2;
@@ -131,27 +201,25 @@ class InquirySalesController extends Controller
             $inquiry->save();
         }
 
-        return redirect()->route('createinquiry')->with('success', 'Inquiry berhasil disimpan.');
+        return redirect()->route('createinquiry')->with('success', 'Inquiry successfully saved.');
     }
 
     public function editInquiry($id)
     {
-        $inquiries = InquirySales::find($id);
+        $inquiry = InquirySales::find($id);
+        $customers = Customer::all();
 
-        if (!$inquiries) {
-            return response()->json(['error' => 'Inquiry tidak ditemukan'], 404);
+        if (!$inquiry) {
+            return response()->json(['error' => 'Inquiry not found'], 404);
         }
 
         return response()->json([
-            'id' => $inquiries->id,
-            'kode_inquiry' => $inquiries->kode_inquiry,
-            'supplier' => $inquiries->supplier,
-            'order_from' => $inquiries->order_from,
-            'create_by' => $inquiries->create_by,
-            'to_approve' => $inquiries->to_approve,
-            'to_validate' => $inquiries->to_validate,
-            'note' => $inquiries->note,
-            'attach_file' => $inquiries->attach_file,
+            'id' => $inquiry->id,
+            'kode_inquiry' => $inquiry->kode_inquiry,
+            'jenis_inquiry' => $inquiry->jenis_inquiry,
+            'id_customer' => $inquiry->id_customer,
+            'customer_name' => $inquiry->customer->name_customer, // Assuming a relation is set up
+            'customers' => $customers,
         ]);
     }
 
@@ -159,7 +227,7 @@ class InquirySalesController extends Controller
     {
         $request->validate([
             'jenis_inquiry' => 'required',
-            'order_from' => 'required',
+            'id_customer' => 'required',
         ]);
 
         $inquiry = InquirySales::findOrFail($id);
@@ -180,7 +248,7 @@ class InquirySalesController extends Controller
         // Assign the name of the logged-in user to the create_by field
         $inquiry->create_by = Auth::user()->name;
 
-        $inquiry->update($request->all());
+        $inquiry->update($request->except('order_from')); // Update excluding order_from
 
         return redirect()->route('createinquiry')->with('success', 'Inquiry updated successfully');
     }
@@ -207,7 +275,7 @@ class InquirySalesController extends Controller
 
         if ($request->action_type == 'approved') {
             $inquiry->to_approve = 'Approved';
-            $inquiry->status = 4;
+            $inquiry->status = 5;
         } elseif ($request->action_type == 'not_approved') {
             $inquiry->to_approve = 'Not Approved';
             $inquiry->status = 0; // Or any other status code you want to set for not approved
@@ -222,9 +290,10 @@ class InquirySalesController extends Controller
     {
         $inquiry = InquirySales::findOrFail($id);
 
+        // Handle validation
         if ($request->action_type == 'validated') {
             $inquiry->to_validate = 'Validated';
-            $inquiry->status = 5;
+            $inquiry->status = 6;
 
             // Save note
             $inquiry->note = $request->note;
@@ -232,8 +301,8 @@ class InquirySalesController extends Controller
             // Save attachment file
             if ($request->hasFile('file')) {
                 $file = $request->file('file');
-                $fileName = $file->getClientOriginalName(); // Menggunakan nama asli file
-                $file->move(public_path('assets/files'), $fileName); // Simpan di direktori public/assets/files
+                $fileName = $file->getClientOriginalName(); // Use the original file name
+                $file->move(public_path('assets/files'), $fileName); // Save to public/assets/files directory
                 $inquiry->attach_file = $fileName;
             }
         } elseif ($request->action_type == 'not_validated') {
@@ -241,9 +310,9 @@ class InquirySalesController extends Controller
             $inquiry->status = 0;
         }
 
-        $inquiry->save(); // Simpan perubahan ke database
+        $inquiry->save(); // Save changes to the database
 
-        return redirect()->route('validasiInquiry')->with('success', 'Inquiry updated successfully');
+        return redirect()->route('reportInquiry')->with('success', 'Inquiry updated successfully');
     }
 
     public function previewSS(Request $request)
@@ -251,8 +320,7 @@ class InquirySalesController extends Controller
         // Validasi input
         $request->validate([
             'id_inquiry' => 'required|integer',
-            'materials' => 'required|array',
-            'materials.*.nama_material' => 'required|string',
+            'materials.*.id_type' => 'required|integer', // Validate id_type
             'materials.*.jenis' => 'required|string', // Validate jenis
             'materials.*.thickness' => 'nullable|string',
             'materials.*.weight' => 'nullable|string',
@@ -265,17 +333,20 @@ class InquirySalesController extends Controller
 
         // Ambil id_inquiry dari request
         $id_inquiry = $request->id_inquiry;
+        Log::info('ID Inquiry:', ['id_inquiry' => $id_inquiry]);
 
         // Iterasi dan simpan atau update material
         foreach ($request->materials as $material) {
-            // Cari detail inquiry berdasarkan id_inquiry dan nama_material
-            $detailInquiry = DetailInquiry::where('id_inquiry', $id_inquiry)
-                                          ->where('nama_material', $material['nama_material'])
-                                          ->first();
+            Log::info('Processing Material:', $material);
 
+            // Cari detail inquiry berdasarkan id_inquiry dan id_type
+            $detailInquiry = DetailInquiry::where('id_inquiry', $id_inquiry)
+                                          ->where('id_type', $material['id_type'])
+                                          ->first();
             if ($detailInquiry) {
                 // Jika detail inquiry ditemukan, perbarui data detail inquiry
                 $detailInquiry->update([
+                    'id_type' => $material['id_type'],
                     'jenis' => $material['jenis'],
                     'thickness' => $material['thickness'],
                     'weight' => $material['weight'],
@@ -284,13 +355,13 @@ class InquirySalesController extends Controller
                     'length' => $material['length'],
                     'pcs' => $material['pcs'],
                     'qty' => $material['qty'],
-                    // Field lainnya jika ada
                 ]);
+                Log::info('DetailInquiry updated', ['id' => $detailInquiry->id]);
             } else {
                 // Jika detail inquiry tidak ditemukan, buat detail inquiry baru
-                DetailInquiry::create([
+                $newDetailInquiry = DetailInquiry::create([
                     'id_inquiry' => $id_inquiry,
-                    'nama_material' => $material['nama_material'],
+                    'id_type' => $material['id_type'],
                     'jenis' => $material['jenis'],
                     'thickness' => $material['thickness'],
                     'weight' => $material['weight'],
@@ -299,19 +370,103 @@ class InquirySalesController extends Controller
                     'length' => $material['length'],
                     'pcs' => $material['pcs'],
                     'qty' => $material['qty'],
-                    // Field lainnya jika ada
                 ]);
+                Log::info('DetailInquiry created', ['id' => $newDetailInquiry->id]);
             }
         }
 
         // Cari inquiry berdasarkan id_inquiry
         $inquiry = InquirySales::find($id_inquiry);
-
-        // Periksa apakah inquiry ditemukan
         if ($inquiry) {
             // Perbarui status inquiry menjadi 3
             $inquiry->status = 3;
             $inquiry->save();
+            Log::info('Inquiry status updated to 3', ['id' => $inquiry->id]);
+        } else {
+            Log::warning('Inquiry not found', ['id_inquiry' => $id_inquiry]);
+        }
+
+        return response()->json(['message' => 'Detail Inquiry updated or created successfully']);
+    }
+
+    public function saveTindakLanjut(Request $request)
+    {
+        // Validasi input
+        $request->validate([
+            'id_inquiry' => 'required|integer',
+            'materials.*.id_type' => 'required|integer', // Validate id_type
+            'materials.*.jenis' => 'required|string', // Validate jenis
+            'materials.*.thickness' => 'nullable|string',
+            'materials.*.weight' => 'nullable|string',
+            'materials.*.inner_diameter' => 'nullable|string',
+            'materials.*.outer_diameter' => 'nullable|string',
+            'materials.*.length' => 'nullable|string',
+            'materials.*.pcs' => 'nullable|string',
+            'materials.*.qty' => 'nullable|string',
+            'materials.*.konfirmasi' => 'nullable|string',
+            'materials.*.no_po' => 'nullable|string',
+            'materials.*.rencana_kedatangan' => 'nullable|string',
+        ]);
+
+        // Ambil id_inquiry dari request
+        $id_inquiry = $request->id_inquiry;
+        Log::info('ID Inquiry:', ['id_inquiry' => $id_inquiry]);
+
+        // Iterasi dan simpan atau update material
+        foreach ($request->materials as $material) {
+            Log::info('Processing Material:', $material);
+
+            // Cari detail inquiry berdasarkan id_inquiry dan id_type
+            $detailInquiry = DetailInquiry::where('id_inquiry', $id_inquiry)
+                                          ->where('id_type', $material['id_type'])
+                                          ->first();
+            if ($detailInquiry) {
+                // Jika detail inquiry ditemukan, perbarui data detail inquiry
+                $detailInquiry->update([
+                    'id_type' => $material['id_type'],
+                    'jenis' => $material['jenis'],
+                    'thickness' => $material['thickness'],
+                    'weight' => $material['weight'],
+                    'inner_diameter' => $material['inner_diameter'],
+                    'outer_diameter' => $material['outer_diameter'],
+                    'length' => $material['length'],
+                    'pcs' => $material['pcs'],
+                    'qty' => $material['qty'],
+                    'konfirmasi' => $material['konfirmasi'],
+                    'no_po' => $material['no_po'],
+                    'rencana_kedatangan' => $material['rencana_kedatangan'],
+                ]);
+                Log::info('DetailInquiry updated', ['id' => $detailInquiry->id]);
+            } else {
+                // Jika detail inquiry tidak ditemukan, buat detail inquiry baru
+                $newDetailInquiry = DetailInquiry::create([
+                    'id_inquiry' => $id_inquiry,
+                    'id_type' => $material['id_type'],
+                    'jenis' => $material['jenis'],
+                    'thickness' => $material['thickness'],
+                    'weight' => $material['weight'],
+                    'inner_diameter' => $material['inner_diameter'],
+                    'outer_diameter' => $material['outer_diameter'],
+                    'length' => $material['length'],
+                    'pcs' => $material['pcs'],
+                    'qty' => $material['qty'],
+                    'konfirmasi' => $material['konfirmasi'],
+                    'no_po' => $material['no_po'],
+                    'rencana_kedatangan' => $material['rencana_kedatangan'],
+                ]);
+                Log::info('DetailInquiry created', ['id' => $newDetailInquiry->id]);
+            }
+        }
+
+        // Cari inquiry berdasarkan id_inquiry
+        $inquiry = InquirySales::find($id_inquiry);
+        if ($inquiry) {
+            // Perbarui status inquiry menjadi 3
+            $inquiry->status = 7;
+            $inquiry->save();
+            Log::info('Inquiry status updated to 3', ['id' => $inquiry->id]);
+        } else {
+            Log::warning('Inquiry not found', ['id_inquiry' => $id_inquiry]);
         }
 
         return response()->json(['message' => 'Detail Inquiry updated or created successfully']);

@@ -7,6 +7,7 @@ use App\Http\Controllers\FormFPPController;
 use App\Http\Controllers\HandlingController;
 use App\Http\Controllers\HeatTreatmentController;
 use App\Http\Controllers\InquirySalesController;
+use App\Http\Controllers\KmPengajuanController;
 use App\Http\Controllers\MesinController;
 use App\Http\Controllers\PreventiveController;
 use App\Http\Controllers\SafetyController;
@@ -232,10 +233,10 @@ Route::middleware(['web', 'auth'])->group(function () {
     Route::get('/getBatchData', [HeatTreatmentController::class, 'getBatchData'])->name('getBatchData');
 
     // Inquiry Sales
-
     // view
     Route::get('createinquiry', [InquirySalesController::class, 'createInquirySales'])->name('createinquiry');
     Route::get('formulirInquiry/{id}', [InquirySalesController::class, 'formulirInquiry'])->name('formulirInquiry');
+    Route::get('tindakLanjutInquiry/{id}', [InquirySalesController::class, 'tindakLanjutInquiry'])->name('tindakLanjutInquiry');
     Route::get('showFormSS/{id}', [InquirySalesController::class, 'showFormSS'])->name('showFormSS');
     Route::get('historyFormSS/{id}', [InquirySalesController::class, 'historyFormSS'])->name('historyFormSS');
 
@@ -245,10 +246,29 @@ Route::middleware(['web', 'auth'])->group(function () {
     // fungsi
     Route::post('storeinquiry', [InquirySalesController::class, 'storeInquirySales'])->name('storeinquiry');
     Route::post('/inquiry/previewSS', [InquirySalesController::class, 'previewSS'])->name('inquiry.previewSS');
+    Route::post('/inquiry/tindakLanjutInquiry', [InquirySalesController::class, 'saveTindakLanjut'])->name('inquiry.tindakLanjutInquiry');
     Route::put('/inquiry/{id}', [InquirySalesController::class, 'update'])->name('updateinquiry');
     Route::get('/editInquiry/{id}', [InquirySalesController::class, 'editInquiry'])->name('editInquiry');
     Route::delete('/deleteinquiry/{id}', [InquirySalesController::class, 'delete'])->name('deleteinquiry');
 
     Route::put('/approvedInquiry/{id}', [InquirySalesController::class, 'approvedInquiry'])->name('approvedInquiry');
     Route::put('/validateInquiry/{id}', [InquirySalesController::class, 'validateInquiry'])->name('validateInquiry');
+
+    // km
+    Route::get('/km', [KmPengajuanController::class, 'pengajuanKM'])->name('pengajuanKM');
+    Route::get('/dsKnowlege', [KmPengajuanController::class, 'dsKnowlege'])->name('dsKnowlege');
+    Route::get('/persetujuanKM', [KmPengajuanController::class, 'persetujuanKM'])->name('persetujuanKM');
+    Route::post('/kmTransaksi/markAsRead', [KmPengajuanController::class, 'markAsRead'])->name('kmTransaksi.markAsRead');
+    Route::post('/kmTransaksi/saveTransaction', [KmPengajuanController::class, 'saveTransaction'])->name('kmTransaksi.saveTransaction');
+
+    // fungsi
+    Route::post('/km', [KmPengajuanController::class, 'storeKM'])->name('storeKM');
+    Route::put('/knowledge-management/update', [KmPengajuanController::class, 'update'])->name('updateKM');
+    Route::get('/km/{id}/edit', [KmPengajuanController::class, 'edit'])->name('editKM');
+
+    Route::get('/km/{id}/showPersetujuan', [KmPengajuanController::class, 'showPersetujuan'])->name('showPersetujuan');
+    Route::put('/knowledge-management/approveKM', [KmPengajuanController::class, 'approveKM'])->name('approveKM');
+
+    Route::patch('/km/{id}/update-status', [KmPengajuanController::class, 'updateStatus'])->name('updateStatusKM');
+    Route::patch('/kirimKM/{id}', [KmPengajuanController::class, 'kirimKM'])->name('kirimKM');
 });

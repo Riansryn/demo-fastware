@@ -77,8 +77,8 @@
             <h1>Halaman Inquiry</h1>
             <nav>
                 <ol class="breadcrumb">
-                    <li class="breadcrumb-item active"><a href="{{ route('createinquiry') }}">Menu Inquiry Sales</a></li>
-                    <li class="breadcrumb-item active">Formulir Inquiry Sales</li>
+                    <li class="breadcrumb-item active"><a href="{{ route('reportInquiry') }}">Menu Tindak Lanjut Inquiry Sales</a></li>
+                    <li class="breadcrumb-item active">Tindak Lanjut Inquiry Sales</li>
                 </ol>
             </nav>
         </div>
@@ -122,6 +122,9 @@
                                     <th style="width: 50px;">Length</th>
                                     <th style="width: 50px;">Pcs</th>
                                     <th style="width: 50px;">Qty</th>
+                                    <th style="width: 50px;">Konfirmasi</th>
+                                    <th style="width: 50px;">NO PO</th>
+                                    <th style="width: 100px;">Rencana Kedatangan</th>
                                 </tr>
                             </thead>
                             <tbody id="table-body">
@@ -135,7 +138,10 @@
                                                     empty($material['outer_diameter']) &&
                                                     empty($material['length']) &&
                                                     empty($material['pcs']) &&
-                                                    empty($material['qty']))
+                                                    empty($material['qty']) &&
+                                                    empty($material['konfirmasi']) &&
+                                                    empty($material['no_po']) &&
+                                                    empty($material['rencana_kedatangan']))
                                                 <input type="checkbox" name="record">
                                             @endif
                                         </td>
@@ -144,7 +150,7 @@
                                             <select name="id_type" class="material-dropdown" style="width: 180px;">
                                                 <option value="" disabled selected>Cari Material...</option>
                                                 @foreach ($typeMaterials as $type)
-                                                    <option value="{{ $type->id }}"
+                                                    <option disabled value="{{ $type->id }}"
                                                         {{ $material->id_type == $type->id ? 'selected' : '' }}>
                                                         {{ $type->type_name }}
                                                     </option>
@@ -152,7 +158,7 @@
                                             </select>
                                         </td>
                                         <td>
-                                            <select name="jenis" class="jenis-dropdown" style="width: 80px;">
+                                            <select name="jenis" class="jenis-dropdown" style="width: 80px;" disabled>
                                                 <option value="Flat" {{ $material['jenis'] == 'Flat' ? 'selected' : '' }}>
                                                     Flat</option>
                                                 <option value="Round"
@@ -163,28 +169,39 @@
                                             </select>
                                         </td>
                                         <td><input type="text" name="thickness" value="{{ $material['thickness'] }}"
-                                                size="10"></td>
+                                                size="10" readonly></td>
                                         <td><input type="text" name="weight" value="{{ $material['weight'] }}"
-                                                size="5"></td>
+                                                size="5" readonly></td>
                                         <td><input type="text" name="inner_diameter"
-                                                value="{{ $material['inner_diameter'] }}" size="10" disabled></td>
+                                                value="{{ $material['inner_diameter'] }}" size="10" disabled readonly></td>
                                         <td><input type="text" name="outer_diameter"
-                                                value="{{ $material['outer_diameter'] }}" size="10" disabled></td>
+                                                value="{{ $material['outer_diameter'] }}" size="10" disabled readonly></td>
                                         <td><input type="text" name="length" value="{{ $material['length'] }}"
-                                                size="10"></td>
+                                                size="10" readonly></td>
                                         <td><input type="text" name="pcs" value="{{ $material['pcs'] }}"
-                                                size="10" required></td>
+                                                size="10" required readonly></td>
                                         <td><input type="text" name="qty" value="{{ $material['qty'] }}"
+                                                size="10" required readonly></td>
+                                        <td>
+                                            <select name="konfirmasi" class="jenis-dropdown" style="width: 100%;">
+                                                <option value="OK"
+                                                    {{ $material['konfirmasi'] == 'OK' ? 'selected' : '' }}>OK</option>
+                                                <option value="NOT OK"
+                                                    {{ $material['konfirmasi'] == 'NOT OK' ? 'selected' : '' }}>NOT OK
+                                                </option>
+                                            </select>
+                                        </td>
+                                        <td><input type="text" name="no_po" value="{{ $material['no_po'] }}"
                                                 size="10" required></td>
+                                        <td><input type="text" name="rencana_kedatangan"
+                                                value="{{ $material['rencana_kedatangan'] }}" size="10" required></td>
                                     </tr>
                                 @endforeach
                             </tbody>
                         </table>
                     </div>
-
-                    <a href="#" class="btn btn-success add-row-button" onclick="addRow()">Tambah Baris</a>
-                    <a href="#" class="btn btn-danger delete-row-button" onclick="deleteRow()">Hapus Baris</a>
                     <button class="btn btn-primary" onclick="saveTable()">Save</button>
+                    <button class="btn btn-secondary" onclick="history.back()">Back</button>
                 </div>
             </div>
         </section>
@@ -228,15 +245,18 @@
                 var cell9 = newRow.insertCell(8);
                 var cell10 = newRow.insertCell(9);
                 var cell11 = newRow.insertCell(10);
+                var cell12 = newRow.insertCell(11);
+                var cell13 = newRow.insertCell(12);
+                var cell14 = newRow.insertCell(13);
 
                 cell1.innerHTML = '<input type="checkbox" name="record">';
                 cell2.innerHTML = rowCount + 1;
 
                 var idTypeDropdown = `<select name="id_type" class="material-dropdown" style="width: 180px;">
         <option value="" disabled selected>Cari Material...</option>`;
-                typeMaterials.forEach(function(type) {
-                    idTypeDropdown += `<option value="${type.id}">${type.type_name}</option>`;
-                });
+                @foreach ($typeMaterials as $type)
+                    idTypeDropdown += `<option value="{{ $type->id }}">{{ $type->type_name }}</option>`;
+                @endforeach
                 idTypeDropdown += `</select>`;
                 cell3.innerHTML = idTypeDropdown;
 
@@ -254,6 +274,14 @@
                 cell9.innerHTML = '<input type="text" name="length" size="10">';
                 cell10.innerHTML = '<input type="text" name="pcs" size="10" required>';
                 cell11.innerHTML = '<input type="text" name="qty" size="10" required>';
+                cell12.innerHTML = `
+        <select name="konfirmasi" class="jenis-dropdown" style="width: 80px;">
+            <option value="OK">OK</option>
+            <option value="NOT OK">NOT OK</option>
+        </select>
+    `;
+                cell13.innerHTML = '<input type="text" name="no_po" size="10" required>';
+                cell14.innerHTML = '<input type="text" name="rencana_kedatangan" size="10" required>';
 
                 updateDropdownListeners(); // Memastikan listener dropdown diperbarui
             }
@@ -317,23 +345,13 @@
                     var lengthElement = row.querySelector('input[name="length"]');
                     var pcsElement = row.querySelector('input[name="pcs"]');
                     var qtyElement = row.querySelector('input[name="qty"]');
-
-                    // Log all elements to see if they are found
-                    console.log(`Row ${index + 1}:`);
-                    console.log('idTypeElement:', idTypeElement ? idTypeElement.value : 'not found');
-                    console.log('jenisElement:', jenisElement ? jenisElement.value : 'not found');
-                    console.log('thicknessElement:', thicknessElement ? thicknessElement.value : 'not found');
-                    console.log('weightElement:', weightElement ? weightElement.value : 'not found');
-                    console.log('innerDiameterElement:', innerDiameterElement ? innerDiameterElement.value :
-                        'not found');
-                    console.log('outerDiameterElement:', outerDiameterElement ? outerDiameterElement.value :
-                        'not found');
-                    console.log('lengthElement:', lengthElement ? lengthElement.value : 'not found');
-                    console.log('pcsElement:', pcsElement ? pcsElement.value : 'not found');
-                    console.log('qtyElement:', qtyElement ? qtyElement.value : 'not found');
+                    var konfirmasiElement = row.querySelector('select[name="konfirmasi"]');
+                    var noPOElement = row.querySelector('input[name="no_po"]');
+                    var rencanaKedatanganElement = row.querySelector('input[name="rencana_kedatangan"]');
 
                     if (idTypeElement && jenisElement && thicknessElement && weightElement && innerDiameterElement &&
-                        outerDiameterElement && lengthElement && pcsElement && qtyElement) {
+                        outerDiameterElement && lengthElement && pcsElement && qtyElement && konfirmasiElement &&
+                        noPOElement && rencanaKedatanganElement) {
                         var rowData = {
                             id_type: idTypeElement.value,
                             jenis: jenisElement.value,
@@ -343,7 +361,10 @@
                             outer_diameter: outerDiameterElement.value,
                             length: lengthElement.value,
                             pcs: pcsElement.value,
-                            qty: qtyElement.value
+                            qty: qtyElement.value,
+                            konfirmasi: konfirmasiElement.value,
+                            no_po: noPOElement.value,
+                            rencana_kedatangan: rencanaKedatanganElement.value
                         };
                         data.materials.push(rowData);
                     } else {
@@ -352,7 +373,7 @@
                 });
 
                 $.ajax({
-                    url: '{{ route('inquiry.previewSS') }}',
+                    url: '{{ route('inquiry.tindakLanjutInquiry') }}',
                     method: 'POST',
                     data: JSON.stringify(data),
                     contentType: 'application/json',
@@ -361,7 +382,7 @@
                     },
                     success: function(response) {
                         alert('Inquiry updated successfully');
-                        window.location.href = '{{ route('showFormSS', $inquiry->id) }}';
+                        window.location.href = '{{ route('reportInquiry', $inquiry->id) }}';
                     },
                     error: function(error) {
                         console.error(error);

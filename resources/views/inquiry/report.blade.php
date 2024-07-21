@@ -16,8 +16,6 @@
                                     <th scope="col">Kode Inq.</th>
                                     <th scope="col">Order From</th>
                                     <th scope="col">Create By</th>
-                                    <th scope="col" class="text-center">To Approve</th>
-                                    <th scope="col" class="text-center">To Validate</th>
                                     <th scope="col">Note</th>
                                     <th scope="col">File</th>
                                     <th scope="col" class="text-center">is Active</th>
@@ -26,50 +24,57 @@
                             </thead>
                             <tbody>
                                 @foreach ($inquiries as $inquiry)
-                                    @if ($inquiry->status == 5)
-                                        <tr>
-                                            <th scope="row">{{ $loop->iteration }}</th>
-                                            <td>{{ $inquiry->kode_inquiry }}</td>
-                                            <td>{{ $inquiry->order_from }}</td>
-                                            <td>{{ $inquiry->create_by }}</td>
-                                            <td class="text-center">
-                                                <button
-                                                    class="btn btn-sm text-center {{ $inquiry->to_approve == 'Waiting' ? 'btn-warning' : ($inquiry->to_approve == 'Approved' ? 'btn-success' : 'btn-danger') }}">
-                                                    {{ $inquiry->to_approve }}
-                                                </button>
-                                            </td>
-                                            <td class="text-center">
-                                                <button
-                                                    class="btn btn-sm {{ $inquiry->to_validate == 'Waiting' ? 'btn-warning' : ($inquiry->to_validate == 'Validated' ? 'btn-success' : 'btn-danger') }}">
-                                                    {{ $inquiry->to_validate }}
-                                                </button>
-                                            </td>
-                                            <td>{{ $inquiry->note }}</td>
-                                            <td>
-                                                @if ($inquiry->attach_file)
-                                                    <a href="{{ asset('assets/files/' . $inquiry->attach_file) }}"
-                                                        target="_blank">View File</a>
-                                                @else
-                                                    No File
-                                                @endif
-                                            </td>
-
-                                            <td>
-                                                @if ($inquiry->status == 0)
-                                                    <button type="button" class="btn btn-danger" title="Data tidak aktif">
-                                                        <i class="bi bi-exclamation-octagon"></i>
-                                                    </button>
-                                                @endif
-                                            </td>
-
-                                            <td>
-                                                <a class="btn btn-warning mt-1" title="View Form"
-                                                    href="{{ route('historyFormSS', $inquiry->id) }}">
-                                                    <i class="bi bi-eye-fill"></i>
+                                    <tr>
+                                        <th scope="row">{{ $loop->iteration }}</th>
+                                        <td>{{ $inquiry->kode_inquiry }}</td>
+                                        <td>
+                                            @if ($inquiry->customer)
+                                                {{ $inquiry->customer->name_customer }}
+                                            @else
+                                                N/A
+                                            @endif
+                                        </td>
+                                        <td>{{ $inquiry->create_by }}</td>
+                                        <td>{{ $inquiry->note }}</td>
+                                        <td>
+                                            @if ($inquiry->attach_file)
+                                                <a href="{{ asset('assets/files/' . $inquiry->attach_file) }}"
+                                                    target="_blank">
+                                                    <i class="fas fa-file-alt"></i>
                                                 </a>
-                                            </td>
-                                        </tr>
-                                    @endif
+                                            @else
+                                                <i class="fas fa-times"></i> No File
+                                            @endif
+                                        </td>
+
+                                        <td>
+                                            @if ($inquiry->status == 0)
+                                                <button type="button" class="btn btn-danger" title="Data tidak aktif">
+                                                    <i class="bi bi-exclamation-octagon"></i>
+                                                </button>
+                                            @endif
+                                        </td>
+
+                                        <td>
+                                            @if ($inquiry->status != 5 && $inquiry->status != 6 && $inquiry->status != 7)
+                                                <a class="btn btn-success mt-1" title="Edit">
+                                                    <i class="bi bi-check2-all"
+                                                        onclick="openViewInquiryModal({{ $inquiry->id }})"></i>
+                                                </a>
+                                            @endif
+                                            @if ($inquiry->status != 4 && $inquiry->status != 6 && $inquiry->status != 7)
+                                                <a class="btn btn-primary mt-1" title="Tindak Lanjut"
+                                                    href="{{ route('tindakLanjutInquiry', $inquiry->id) }}">
+                                                    <i class="bi bi-card-checklist"></i>
+                                                </a>
+                                            @endif
+                                            <a class="btn btn-warning mt-1" title="View Form"
+                                                href="{{ route('historyFormSS', $inquiry->id) }}">
+                                                <i class="bi bi-eye-fill"></i>
+                                            </a>
+
+                                        </td>
+                                    </tr>
                                 @endforeach
                             </tbody>
                         </table>
@@ -86,15 +91,14 @@
                                         aria-label="Close"></button>
                                 </div>
                                 <div class="modal-body">
-                                    <form id="viewInquiryForm"
-                                        action="{{ route('validateInquiry', ['id' => $inquiry->id]) }}" method="POST"
-                                        enctype="multipart/form-data">
+                                    <form id="viewInquiryForm" action="{{ route('validateInquiry', ['id' => ':id']) }}"
+                                        method="POST" enctype="multipart/form-data">
                                         @csrf
                                         @method('PUT')
                                         <input type="hidden" id="viewInquiryId" name="inquiry_id">
                                         <input type="hidden" id="action_type" name="action_type">
                                         <div class="mb-3">
-                                            <label for="viewjenis_inquiry" class="form-label">Kode Inquiry</label>
+                                            <label for="viewkode_inquiry" class="form-label">Kode Inquiry</label>
                                             <input type="text" class="form-control" id="viewkode_inquiry"
                                                 name="kode_inquiry" required disabled>
                                         </div>
@@ -122,6 +126,10 @@
                                         <div class="modal-footer" id="initialButtons">
                                             <button type="button" class="btn btn-secondary"
                                                 data-bs-dismiss="modal">Close</button>
+                                            <button type="button" class="btn btn-primary"
+                                                onclick="showNoteAttachmentFields('validated')">Validated</button>
+                                            <button type="submit" class="btn btn-danger"
+                                                onclick="setActionType('not_validated')">Not Validated</button>
                                         </div>
                                     </form>
                                 </div>
@@ -165,41 +173,70 @@
                     url: '{{ route('editInquiry', ['id' => ':id']) }}'.replace(':id', id),
                     type: 'GET',
                     success: function(response) {
+                        console.log('Response:', response); // Debugging log
+
+                        // Isi form modal dengan data yang diperoleh
                         $('#viewkode_inquiry').val(response.kode_inquiry);
                         $('#viewjenis_inquiry').val(response.jenis_inquiry);
                         $('#viewtype').val(response.type);
                         $('#viewsize').val(response.size);
                         $('#viewsupplier').val(response.supplier);
                         $('#viewqty').val(response.qty);
-                        $('#vieworder_from').val(response.order_from);
+                        $('#vieworder_from').val(response.customer_name); // Update this line
                         $('#viewcreate_by').val(response.create_by);
                         $('#viewto_approve').val(response.to_approve);
                         $('#viewto_validate').val(response.to_validate);
                         $('#viewnote').val(response.note);
                         $('#viewInquiryId').val(response.id);
 
+                        // Update form action URL dengan ID
                         $('#viewInquiryForm').attr('action', '{{ route('validateInquiry', ['id' => ':id']) }}'
                             .replace(':id', response.id));
 
                         if (response.attach_file) {
-                            var fileLink = '{{ asset('assets/files') }}/' + response.attach_file;
-                            $('#filePreviewContainer').show();
-                            $('#viewFilePreview').attr('href', fileLink).attr('download', response.attach_file)
-                                .text('Download File: ' + response.attach_file);
+                            // Display the attached file (image or other)
+                            var fileExtension = response.attach_file.split('.').pop().toLowerCase();
+                            var fileLink = '{{ asset('assets/files/') }}/' + response.attach_file;
+
+                            if (['jpg', 'jpeg', 'png'].includes(fileExtension)) {
+                                $('#viewImagePreview').attr('src', fileLink).attr('width', '150').attr('height',
+                                    '150').show();
+                                $('#viewFilePreview').hide();
+                                $('#viewFileName').text('');
+                                $('#viewImagePreview').click(function() {
+                                    showImageInModal(fileLink);
+                                });
+                            } else {
+                                $('#viewImagePreview').hide();
+                                $('#viewFilePreview').attr('href', fileLink).attr('download', response.attach_file)
+                                    .show();
+                                $('#viewFileName').text(response.attach_file);
+                            }
                         } else {
-                            $('#filePreviewContainer').hide();
+                            // Jika tidak ada file terlampir
+                            $('#viewImagePreview').hide();
+                            $('#viewFilePreview').hide();
+                            $('#viewFileName').text('');
                         }
 
+                        // Display modal
                         $('#viewInquiryModal').modal('show');
                     },
                     error: function(xhr) {
+                        // Handle error
                         console.log(xhr.responseText);
                     }
                 });
             }
 
+            function showNoteAttachmentFields(actionType) {
+                $('#action_type').val(actionType);
+                $('#noteAttachmentFields').show();
+                $('#initialButtons').hide();
+            }
+
             function setActionType(actionType) {
-                document.getElementById('action_type').value = actionType;
+                $('#action_type').val(actionType);
             }
 
             function showNoteAttachmentFields() {

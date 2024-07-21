@@ -93,7 +93,7 @@
                         </div>
                         <div class="form-group">
                             <label>Order From:</label>
-                            <div class="form-value">{{ $inquiry->order_from }}</div>
+                            <div class="form-value">{{ $inquiry->customer ? $inquiry->customer->name_customer : 'N/A' }}</div>
                         </div>
                         <div class="form-group">
                             <label>Create By:</label>
@@ -121,7 +121,7 @@
                                 @forelse ($materials as $index => $material)
                                     <tr>
                                         <td>{{ $index + 1 }}</td>
-                                        <td>{{ $material['nama_material'] }}</td>
+                                        <td>{{ $material->type_materials ? $material->type_materials->type_name : 'N/A' }}</td> <!-- Menampilkan type_name -->
                                         <td>{{ $material['jenis'] }}</td>
                                         <td>{{ $material['thickness'] }}</td>
                                         <td>{{ $material['weight'] }}</td>

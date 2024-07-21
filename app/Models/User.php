@@ -68,4 +68,16 @@ class User extends Authenticatable
     {
         return $this->hasMany(PenilaianSS::class);
     }
+
+    // Relasi dengan KmPengajuan
+    public function kmPengajuan()
+    {
+        return $this->hasMany(KmPengajuan::class, 'id_user');
+    }
+
+    // Relasi dengan KmTransaksi
+    public function kmTransaksi()
+    {
+        return $this->hasMany(KmTransaksi::class, 'id_user');
+    } 
 }

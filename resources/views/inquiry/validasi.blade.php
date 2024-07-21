@@ -30,7 +30,13 @@
                                         <tr>
                                             <th scope="row">{{ $loop->iteration }}</th>
                                             <td>{{ $inquiry->kode_inquiry }}</td>
-                                            <td>{{ $inquiry->order_from }}</td>
+                                            <td>
+                                                @if ($inquiry->customer)
+                                                    {{ $inquiry->customer->name_customer }}
+                                                @else
+                                                    N/A
+                                                @endif
+                                            </td>
                                             <td>{{ $inquiry->create_by }}</td>
                                             <td class="text-center">
                                                 <button

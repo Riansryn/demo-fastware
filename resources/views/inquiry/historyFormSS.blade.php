@@ -77,7 +77,7 @@
             <h1>Halaman Inquiry</h1>
             <nav>
                 <ol class="breadcrumb">
-                    <li class="breadcrumb-item active"><a href="{{ route('createinquiry') }}">Menu Inquiry Sales</a></li>
+                    <li class="breadcrumb-item active"><a href="">Menu Inquiry Sales</a></li>
                     <li class="breadcrumb-item active">Riwayat Inquiry Sales</li>
                 </ol>
             </nav>
@@ -93,7 +93,7 @@
                         </div>
                         <div class="form-group">
                             <label>Order From:</label>
-                            <div class="form-value">{{ $inquiry->order_from }}</div>
+                            <div class="form-value">{{ $inquiry->customer ? $inquiry->customer->name_customer : 'N/A' }}</div>
                         </div>
                         <div class="form-group">
                             <label>Create By:</label>
@@ -115,6 +115,9 @@
                                     <th style="width: 50px;">Length</th>
                                     <th style="width: 50px;">Pcs</th>
                                     <th style="width: 50px;">Qty</th>
+                                    <th style="width: 50px;">Konfirmasi</th>
+                                    <th style="width: 50px;">NO PO</th>
+                                    <th style="width: 100px;">Rencana Kedatangan</th>
                                     <th style="width: 50px;">Pembaruan Terakhir</th>
                                 </tr>
                             </thead>
@@ -122,7 +125,7 @@
                                 @forelse ($materials as $index => $material)
                                     <tr>
                                         <td>{{ $index + 1 }}</td>
-                                        <td>{{ $material['nama_material'] }}</td>
+                                        <td>{{ $material->type_materials ? $material->type_materials->type_name : 'N/A' }}</td>
                                         <td>{{ $material['jenis'] }}</td>
                                         <td>{{ $material['thickness'] }}</td>
                                         <td>{{ $material['weight'] }}</td>
@@ -131,6 +134,9 @@
                                         <td>{{ $material['length'] }}</td>
                                         <td>{{ $material['pcs'] }}</td>
                                         <td>{{ $material['qty'] }}</td>
+                                        <td>{{ $material['konfirmasi'] }}</td>
+                                        <td>{{ $material['no_po'] }}</td>
+                                        <td>{{ $material['rencana_kedatangan'] }}</td>
                                         <td>{{ $material['updated_at'] }}</td>
                                     </tr>
                                 @empty
@@ -184,7 +190,7 @@
                 // Add custom header
                 data.push([
                     'Kode Inquiry', 'Nama Material', 'Thickness', 'Weight', 'Inner Diameter', 'Outer Diameter',
-                    'Length', 'Jenis', 'Pcs', 'Qty', 'Order From', 'Create By', 'Tanggal Terakhir'
+                    'Length', 'Jenis', 'Pcs', 'Qty', 'Order From', 'Create By', 'Konfrimasi', 'NO PO', 'Rencana Kedatangan' ,'Tanggal Terakhir'
                 ]);
 
                 // Add form data horizontally
@@ -202,7 +208,10 @@
                         row[9], // Qty
                         formData.orderFrom,
                         formData.createBy,
-                        row[10] // Tanggal Terakhir
+                        row[10], // Qty
+                        row[11], // Qty
+                        row[12], // Qty
+                        row[13] // Tanggal Terakhir
                     ]);
                 });
 
@@ -250,6 +259,15 @@
                     {
                         wpx: 100
                     }, // Create By
+                    {
+                        wpx: 100
+                    }, // konfirmasi
+                    {
+                        wpx: 100
+                    }, // no_po
+                    {
+                        wpx: 100
+                    }, // rencana kedatangan
                     {
                         wpx: 125
                     } // Tanggal Terakhir
