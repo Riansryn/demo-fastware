@@ -153,10 +153,10 @@
             });
             //filter chart 1
             const roleData = {
-                'Sales': ['DH Sales-Maketing', 'SC Sales-Marketing'],
-                'HT': ['DH Productions', 'SC Cutting Machining Feed PPC', 'SC Custome Bubut', 'SC Heat Treatment'],
-                'SupplyChainProduction': ['DH Logistic Warehouse', 'SC Logistic Warehouse'],
-                'FinnAccHrgaIT': ['DH Fin Acc HRGA IT', 'SC Finance', 'SC Accounting', 'SC HRGA IT'],
+                'Sales': [2, 3], // DH Sales-Maketing, SC Sales-Marketing
+                'HT': [5, 9, 31, 22], // DH Productions, SC Cutting Machining Feed PPC, SC Custome Bubut, SC Heat Treatment
+                'SupplyChainProduction': [7, 30], // DH Logistic Warehouse, SC Logistic Warehouse
+                'FinnAccHrgaIT': [11, 12, 32, 14], // DH Fin Acc HRGA IT, SC Finance, SC Accounting, SC HRGA IT
                 'TotalSS': [] // Tambahkan opsi TotalSS dengan array kosong
             };
 

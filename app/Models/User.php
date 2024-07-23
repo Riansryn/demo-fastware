@@ -79,5 +79,15 @@ class User extends Authenticatable
     public function kmTransaksi()
     {
         return $this->hasMany(KmTransaksi::class, 'id_user');
-    } 
+    }
+
+    public function kmSukas()
+    {
+        return $this->hasMany(KmSuka::class, 'id_user');
+    }
+
+    public function insights()
+    {
+        return $this->hasMany(Insight::class, 'id_user');
+    }
 }

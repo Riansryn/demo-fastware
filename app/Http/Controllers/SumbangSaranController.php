@@ -72,7 +72,7 @@ class SumbangSaranController extends Controller
 
         $dataQuery .= '
         ORDER BY 
-            FIELD(sumbang_sarans.status, 7, 6, 5, 4, 3, 2, 1),
+            FIELD(sumbang_sarans.status, 1, 2, 3, 4, 5, 6, 7),
             sumbang_sarans.updated_at DESC
     ';
 
@@ -214,7 +214,7 @@ class SumbangSaranController extends Controller
 
         $dataQuery .= '
     ORDER BY 
-        FIELD(sumbang_sarans.status, 5, 4, 3, 2),
+        FIELD(sumbang_sarans.status, 2, 3, 4, 5),
         sumbang_sarans.created_at DESC
     ';
 
@@ -312,7 +312,7 @@ class SumbangSaranController extends Controller
 
         $dataQuery .= '
     ORDER BY 
-        FIELD(sumbang_sarans.status, 7, 6, 5, 4, 3),
+        FIELD(sumbang_sarans.status, 3, 4, 5, 6, 7),
         sumbang_sarans.updated_at DESC
     ';
 
@@ -361,7 +361,7 @@ class SumbangSaranController extends Controller
             WHERE 
                 sumbang_sarans.status IN (4, 5, 6, 7)
             ORDER BY 
-                FIELD(sumbang_sarans.status, 7, 6, 5, 4),
+                FIELD(sumbang_sarans.status, 4, 5, 6, 7),
                 sumbang_sarans.created_at DESC
         ');
 
@@ -434,19 +434,19 @@ class SumbangSaranController extends Controller
     public function chartSection(Request $request)
     {
         // Eksekusi query untuk mengambil data dari database
-        $dataFromSQL = SumbangSaran::whereIn('modified_by', ['DH Fin Acc HRGA IT', 'DH Productions', 'DH Sales-Maketing', 'DH Logistic Warehouse'])
-            ->selectRaw("MONTH(tgl_pengajuan) as month,
-                 CASE 
-                    WHEN modified_by = 'DH Fin Acc HRGA IT' THEN 'FIN ACC HRGA IT'
-                    WHEN modified_by = 'DH Productions' THEN 'HT'
-                    WHEN modified_by = 'DH Sales-Maketing' THEN 'Sales'
-                    WHEN modified_by = 'DH Logistic Warehouse' THEN 'Supply Chain & Productions'
-                    ELSE modified_by
-                 END AS modified_by,
-                 COUNT(*) as jumlah")
-            ->groupBy('month', 'modified_by')
-            ->orderBy('month')
-            ->get();
+        $dataFromSQL = SumbangSaran::whereIn('modified_by', ['11', '5', '2', '7'])
+        ->selectRaw("MONTH(tgl_pengajuan) as month,
+         CASE 
+            WHEN modified_by = '11' THEN 'FIN ACC HRGA IT'
+            WHEN modified_by = '5' THEN 'HT'
+            WHEN modified_by = '2' THEN 'Sales'
+            WHEN modified_by = '7' THEN 'Supply Chain & Productions'
+            ELSE modified_by
+         END AS modified_by,
+         COUNT(*) as jumlah")
+        ->groupBy('month', 'modified_by')
+        ->orderBy('month')
+        ->get();
 
         // Format hasil query menjadi format yang dapat digunakan oleh Highcharts
         $categories = [
@@ -484,43 +484,43 @@ class SumbangSaranController extends Controller
     {
         $roles = $request->input('roles');
 
-        // Define categories
+        // Define categories with IDs
         $categories = [
-            'Sales' => ['DH Sales-Maketing', 'SC Sales-Marketing', 'UR Sales', 'UR Marketing'],
-            'HT' => ['DH Productions', 'SC Cutting Machining Feed PPC', 'SC Custome Bubut', 'SC Heat Treatment', 'FM Cutting-Machining', 'LD Cutting-Machining', 'UR Cutting', 'UR Machining', 'UR QC', 'UR PPC', 'UR Custome', 'FM Bubut', 'UR Bubut', 'FM Heat Treatment', 'UR Heat Treatment', 'Maintenance'],
-            'SupplyChainProduction' => ['DH Logistic Warehouse', 'SC Logistic Warehouse', 'UR LOGISTIC', 'UR Warehouse', 'UR Feeder', 'UR ACS', 'FM Logistic'],
-            'FinnAccHrgaIT' => ['DH Fin Acc HRGA IT', 'SC HRGA IT', 'SC Accounting', 'SC Finance', 'UR HR', 'UR IT', 'UR Finance', 'UR GA', 'UR Purchase'],
+            'Sales' => [2, 3, 4, 44],
+            'HT' => [5, 9, 31, 22, 42, 27, 26, 45, 46, 6, 18, 21, 43, 28],
+            'SupplyChainProduction' => [7, 30, 29, 50, 49, 47, 51],
+            'FinnAccHrgaIT' => [11, 14, 32, 12, 15, 40, 13, 39, 41],
         ];
-
+    
         $query = DB::table('sumbang_sarans')
             ->join('users', 'sumbang_sarans.id_user', '=', 'users.id')
             ->selectRaw('MONTH(tgl_pengajuan) as month, modified_by, COUNT(*) as count')
             ->groupBy('modified_by', 'month');
-
+    
         if (!empty($roles)) {
             $query->whereIn('modified_by', $roles);
         }
-
+    
         $data = $query->get();
-
+    
         // Format data for chart
         $categoriesMonth = [
             'January', 'February', 'March', 'April', 'May', 'June',
             'July', 'August', 'September', 'October', 'November', 'December',
         ];
-
+    
         $monthlyData = [];
         $totalMonthlyData = array_fill(0, 12, 0);
-
+    
         // Initialize counts for each category
         foreach ($categories as $category => $values) {
             $monthlyData[$category] = array_fill(0, 12, 0);
         }
-
+    
         foreach ($data as $item) {
             $month = $item->month - 1; // Convert month to 0-index
             $count = $item->count;
-
+    
             foreach ($categories as $category => $values) {
                 if (in_array($item->modified_by, $values)) {
                     $monthlyData[$category][$month] += $count;
@@ -529,9 +529,9 @@ class SumbangSaranController extends Controller
                 }
             }
         }
-
+    
         $series = [];
-
+    
         foreach ($monthlyData as $category => $data) {
             $series[] = [
                 'name' => $category,
@@ -539,13 +539,13 @@ class SumbangSaranController extends Controller
                 'data' => $data,
             ];
         }
-
+    
         $series[] = [
             'name' => 'Total Sumbang Saran',
             'type' => 'line',
             'data' => $totalMonthlyData,
         ];
-
+    
         return response()->json([
             'categories' => $categoriesMonth,
             'series' => $series,
@@ -604,34 +604,34 @@ class SumbangSaranController extends Controller
     {
         $startMonth = $request->input('start_periode');
         $endMonth = $request->input('end_periode');
-
-        // Define categories
+    
+        // Define categories with IDs
         $categories = [
-           'Sales' => ['DH Sales-Maketing', 'SC Sales-Marketing', 'UR Sales', 'UR Marketing'],
-            'HT' => ['DH Productions', 'SC Cutting Machining Feed PPC', 'SC Custome Bubut', 'SC Heat Treatment', 'FM Cutting-Machining', 'LD Cutting-Machining', 'UR Cutting', 'UR Machining', 'UR QC', 'UR PPC', 'UR Custome', 'FM Bubut', 'UR Bubut', 'FM Heat Treatment', 'UR Heat Treatment', 'Maintenance'],
-            'SupplyChainProduction' => ['DH Logistic Warehouse', 'SC Logistic Warehouse', 'UR LOGISTIC', 'UR Warehouse', 'UR Feeder', 'UR ACS', 'FM Logistic'],
-            'FinnAccHrgaIT' => ['DH Fin Acc HRGA IT', 'SC HRGA IT', 'SC Accounting', 'SC Finance', 'UR HR', 'UR IT', 'UR Finance', 'UR GA', 'UR Purchase'],
+            'Sales' => [2, 3, 4, 44],
+            'HT' => [5, 9, 31, 22, 42, 27, 26, 45, 46, 6, 18, 21, 43, 28],
+            'SupplyChainProduction' => [7, 30, 29, 50, 49, 47, 51],
+            'FinnAccHrgaIT' => [11, 14, 32, 12, 15, 40, 13, 39, 41],
         ];
-
+    
         $query = DB::table('sumbang_sarans')
             ->select('modified_by', DB::raw('count(id) as submission_count'))
             ->groupBy('modified_by');
-
+    
         if ($startMonth && $endMonth) {
             $query->whereBetween('tgl_pengajuan', [
-                date('Y-m-d', strtotime($startMonth.'-01')),
+                date('Y-m-d', strtotime($startMonth . '-01')),
                 date('Y-m-t', strtotime($endMonth)),
             ]);
         }
-
+    
         $data = $query->get();
-
+    
         // Initialize counts for each category
         $groupedData = [];
         foreach ($categories as $category => $values) {
             $groupedData[$category] = 0;
         }
-
+    
         // Group data by categories
         foreach ($data as $item) {
             foreach ($categories as $category => $values) {
@@ -641,15 +641,15 @@ class SumbangSaranController extends Controller
                 }
             }
         }
-
+    
         $totalCount = array_sum($groupedData);
-
+    
         // Format data for Highcharts
         $formattedData = [];
         foreach ($groupedData as $category => $count) {
             $formattedData[] = ['name' => $category, 'y' => $count];
         }
-
+    
         return response()->json([
             'total' => $totalCount,
             'data' => $formattedData,
@@ -668,8 +668,8 @@ class SumbangSaranController extends Controller
             'keadaan_sebelumnya' => 'required|string',
             'usulan_ide' => 'required|string',
             'keuntungan_ide' => 'required|string',
-            'image' => 'nullable|file|mimes:jpeg,png,jpg,gif,svg,pdf,ppt,pptx,xls,xlsx|max:2048',
-            'image_2' => 'nullable|file|mimes:jpeg,png,jpg,gif,svg,pdf,ppt,pptx,xls,xlsx|max:2048',
+            'image' => 'nullable|file|mimes:jpeg,png,jpg,gif,svg,pdf,ppt,pptx,xls,xlsx|max:12048',
+            'image_2' => 'nullable|file|mimes:jpeg,png,jpg,gif,svg,pdf,ppt,pptx,xls,xlsx|max:12048',
         ]);
 
         // Simpan data
@@ -1038,7 +1038,7 @@ class SumbangSaranController extends Controller
         $sumbangSaran = SumbangSaran::findOrFail($request->ss_id);
         $sumbangSaran->status = 4;
         $sumbangSaran->tgl_verifikasi = Carbon::now(); // Simpan tanggal verifikasi
-        $sumbangSaran->modified_by = $request->user()->roles->role;
+        $sumbangSaran->modified_by = $request->user()->roles->id;
         $sumbangSaran->save();
 
         // Jika penyimpanan berhasil, kembalikan respons berhasil

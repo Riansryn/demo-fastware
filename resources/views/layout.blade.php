@@ -8,7 +8,8 @@
     <title>Astra Daido Steel Indonesia</title>
     <meta content="" name="description">
     <meta content="" name="keywords">
-    <meta name="csrf-token">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    
 
     <link href="assets/img/logo-menu.png" rel="icon">
     <link href="assets/img/logo-menu.png" rel="apple-touch-icon">
@@ -35,6 +36,8 @@
 
     {{-- jadwal kunjungan calender --}}
     <link href="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.9.0/fullcalendar.min.css" rel="stylesheet" />
+
+    
 
 
 <body>
@@ -132,9 +135,10 @@
                     <ul id="dashboard-menu-nav" class="nav-content collapse" data-bs-parent="#sidebar-nav">
                         {{-- @if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2 || Auth::user()->role_id == 3 || Auth::user()->role_id == 4 || Auth::user()->role_id == 5 || Auth::user()->role_id == 6 || Auth::user()->role_id == 7 || Auth::user()->role_id == 9 || Auth::user()->role_id == 11 || Auth::user()->role_id == 12 || Auth::user()->role_id == 13 || Auth::user()->role_id == 14 || Auth::user()->role_id == 16 || Auth::user()->role_id == 17 || Auth::user()->role_id == 22 || Auth::user()->role_id == 30 || Auth::user()->role_id == 31) --}}
                         @php
-                            $acsrole = [1, 2, 3, 4, 5, 6, 7, 9, 11, 12, 13, 14, 16, 17, 22, 30, 31];
+                            $acsrole = [1, 2, 3, 4, 5, 6, 7, 9, 11, 12, 13, 14, 15, 16, 17, 22, 30, 31];
                         @endphp
                         @if (in_array(Auth::user()->role_id, $acsrole))
+                            
                             <li>
                                 <a class="nav-link collapsed" href="{{ route('dashboardMaintenance') }}">
                                     <i class="bi bi-bar-chart-line-fill fs-6"></i>
@@ -158,6 +162,12 @@
                             <a class="nav-link collapsed" href="{{ route('dashboardSS') }}">
                                 <i class="bi bi-bar-chart-line-fill fs-6"></i>
                                 <span>Sumbang Saran</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link collapsed" href="{{ route('dsKnowlege') }}">
+                                <i class="bi bi-bar-chart-line-fill fs-6"></i>
+                                <span>Knowledge System</span>
                             </a>
                         </li>
                     </ul>
@@ -517,7 +527,79 @@
                     @endif --}}
                 </ul>
             </ul>
-
+            <li class="nav-heading">Knowledge Management</li>
+            @if (Auth::user()->role_id == 1 ||
+                    Auth::user()->role_id == 2 ||
+                    Auth::user()->role_id == 3 ||
+                    Auth::user()->role_id == 7 ||
+                    Auth::user()->role_id == 9 ||
+                    Auth::user()->role_id == 11 ||
+                    Auth::user()->role_id == 12 ||
+                    Auth::user()->role_id == 14 ||
+                    Auth::user()->role_id == 15 ||
+                    Auth::user()->role_id == 22 ||
+                    Auth::user()->role_id == 30 ||
+                    Auth::user()->role_id == 31)
+                <a class="nav-link collapsed" data-bs-target="#nav-km-pengajuan" data-bs-toggle="collapse"
+                    href="#">
+                    <i class="bi bi-layout-wtf"></i><span>Pengajuan Knowledge Management</span><i
+                        class="bi bi-chevron-down ms-auto"></i>
+                </a>
+            @endif
+            <ul id="nav-km-pengajuan" class="nav-content collapse " data-bs-parent="#sidebar-nav">
+                @if (Auth::user()->role_id == 1 ||
+                        Auth::user()->role_id == 2 ||
+                        Auth::user()->role_id == 3 ||
+                        Auth::user()->role_id == 7 ||
+                        Auth::user()->role_id == 9 ||
+                        Auth::user()->role_id == 11 ||
+                        Auth::user()->role_id == 12 ||
+                        Auth::user()->role_id == 14 ||
+                        Auth::user()->role_id == 15 ||
+                        Auth::user()->role_id == 22 ||
+                        Auth::user()->role_id == 30 ||
+                        Auth::user()->role_id == 31)
+                    <li class="nav-item">
+                        <a class="nav-link collapsed" href="{{ route('pengajuanKM') }}">
+                            <i class="bi bi-kanban fs-6"></i>
+                            <span>Pengajuan Form Knowledge Management</span>
+                        </a>
+                    </li>
+                @endif
+                @if (Auth::user()->role_id == 1 || Auth::user()->role_id == 14 || Auth::user()->role_id == 15)
+                    <li class="nav-item">
+                        <a class="nav-link collapsed" href="{{ route('persetujuanKM') }}">
+                            <i class="bi bi-kanban-fill fs-6"></i>
+                            <span>Persetujuan Knowledge Management</span>
+                        </a>
+                    </li>
+                @endif
+            </ul>
+            <ul id="nav-km-pic" class="nav-content collapse " data-bs-parent="#sidebar-nav">
+                @if (Auth::user()->role_id == 1 ||
+                        Auth::user()->role_id == 5 ||
+                        Auth::user()->role_id == 14 ||
+                        Auth::user()->role_id == 15)
+                    <li class="nav-item">
+                        <a class="nav-link collapsed" href="#">
+                            <i class="bi-person-lines-fill fs-6"></i>
+                            <span>E-Book Knowledge Management</span>
+                        </a>
+                    </li>
+                @endif
+                @if (Auth::user()->role_id == 1 ||
+                        Auth::user()->role_id == 14 ||
+                        Auth::user()->role_id == 15 ||
+                        Auth::user()->role_id == 16 ||
+                        Auth::user()->role_id == 20)
+                    <li class="nav-item">
+                        <a class="nav-link collapsed" href="#">
+                            <i class="bi-person-lines-fill fs-6"></i>
+                            <span>-</span>
+                        </a>
+                    </li>
+                @endif
+            </ul>
 
 
             @if (Auth::user()->role_id == 1)
