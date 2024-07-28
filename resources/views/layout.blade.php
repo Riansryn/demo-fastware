@@ -9,7 +9,7 @@
     <meta content="" name="description">
     <meta content="" name="keywords">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    
+
 
     <link href="assets/img/logo-menu.png" rel="icon">
     <link href="assets/img/logo-menu.png" rel="apple-touch-icon">
@@ -36,9 +36,6 @@
 
     {{-- jadwal kunjungan calender --}}
     <link href="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.9.0/fullcalendar.min.css" rel="stylesheet" />
-
-    
-
 
 <body>
 
@@ -138,7 +135,6 @@
                             $acsrole = [1, 2, 3, 4, 5, 6, 7, 9, 11, 12, 13, 14, 15, 16, 17, 22, 30, 31];
                         @endphp
                         @if (in_array(Auth::user()->role_id, $acsrole))
-                            
                             <li>
                                 <a class="nav-link collapsed" href="{{ route('dashboardMaintenance') }}">
                                     <i class="bi bi-bar-chart-line-fill fs-6"></i>
@@ -432,7 +428,7 @@
                 @endif
                 {{-- @if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2 || Auth::user()->role_id == 3 || Auth::user()->role_id == 5 || Auth::user()->role_id == 9 || Auth::user()->role_id == 11 || Auth::user()->role_id == 12 || Auth::user()->role_id == 14 || Auth::user()->role_id == 22 || Auth::user()->role_id == 30 || Auth::user()->role_id == 31 || Auth::user()->role_id == 31) --}}
                 @php
-                    $acsrole = [1, 2, 3, 5, 9, 11, 12, 14, 22, 30, 31];
+                    $acsrole = [1, 2, 3, 5, 7, 9, 11, 12, 14, 22, 30, 31];
                 @endphp
                 @if (in_array(Auth::user()->role_id, $acsrole))
                     <li class="nav-item">
@@ -528,18 +524,10 @@
                 </ul>
             </ul>
             <li class="nav-heading">Knowledge Management</li>
-            @if (Auth::user()->role_id == 1 ||
-                    Auth::user()->role_id == 2 ||
-                    Auth::user()->role_id == 3 ||
-                    Auth::user()->role_id == 7 ||
-                    Auth::user()->role_id == 9 ||
-                    Auth::user()->role_id == 11 ||
-                    Auth::user()->role_id == 12 ||
-                    Auth::user()->role_id == 14 ||
-                    Auth::user()->role_id == 15 ||
-                    Auth::user()->role_id == 22 ||
-                    Auth::user()->role_id == 30 ||
-                    Auth::user()->role_id == 31)
+            @php
+                $acsrole = [1, 2, 3, 7, 9, 11, 12, 14, 15, 22, 30, 31];
+            @endphp
+            @if (in_array(Auth::user()->role_id, $acsrole))
                 <a class="nav-link collapsed" data-bs-target="#nav-km-pengajuan" data-bs-toggle="collapse"
                     href="#">
                     <i class="bi bi-layout-wtf"></i><span>Pengajuan Knowledge Management</span><i
@@ -547,18 +535,10 @@
                 </a>
             @endif
             <ul id="nav-km-pengajuan" class="nav-content collapse " data-bs-parent="#sidebar-nav">
-                @if (Auth::user()->role_id == 1 ||
-                        Auth::user()->role_id == 2 ||
-                        Auth::user()->role_id == 3 ||
-                        Auth::user()->role_id == 7 ||
-                        Auth::user()->role_id == 9 ||
-                        Auth::user()->role_id == 11 ||
-                        Auth::user()->role_id == 12 ||
-                        Auth::user()->role_id == 14 ||
-                        Auth::user()->role_id == 15 ||
-                        Auth::user()->role_id == 22 ||
-                        Auth::user()->role_id == 30 ||
-                        Auth::user()->role_id == 31)
+                @php
+                    $acsrole = [1, 2, 3, 7, 9, 11, 12, 14, 15, 22, 30, 31];
+                @endphp
+                @if (in_array(Auth::user()->role_id, $acsrole))
                     <li class="nav-item">
                         <a class="nav-link collapsed" href="{{ route('pengajuanKM') }}">
                             <i class="bi bi-kanban fs-6"></i>
@@ -566,7 +546,10 @@
                         </a>
                     </li>
                 @endif
-                @if (Auth::user()->role_id == 1 || Auth::user()->role_id == 14 || Auth::user()->role_id == 15)
+                @php
+                    $acsrole = [1, 14, 15];
+                @endphp
+                @if (in_array(Auth::user()->role_id, $acsrole))
                     <li class="nav-item">
                         <a class="nav-link collapsed" href="{{ route('persetujuanKM') }}">
                             <i class="bi bi-kanban-fill fs-6"></i>

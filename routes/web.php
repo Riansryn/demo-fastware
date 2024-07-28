@@ -270,5 +270,8 @@ Route::middleware(['web', 'auth'])->group(function () {
     Route::put('/knowledge-management/approveKM', [KmPengajuanController::class, 'approveKM'])->name('approveKM');
 
     Route::patch('/km/{id}/update-status', [KmPengajuanController::class, 'updateStatus'])->name('updateStatusKM');
-    Route::patch('/kirimKM/{id}', [KmPengajuanController::class, 'kirimKM'])->name('kirimKM');
+    Route::post('/kirimKM/{id}', [KmPengajuanController::class, 'kirimKM'])->name('kirimKM');
+    Route::post('/like', [KmPengajuanController::class, 'like'])->name('kmSuka.like');
+    Route::post('/unlike', [KmPengajuanController::class, 'unlike'])->name('kmSuka.unlike');
+    Route::post('/insights/add', [KmPengajuanController::class, 'addInsight'])->name('insights.add');
 });
