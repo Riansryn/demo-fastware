@@ -1,8 +1,6 @@
 @extends('layout')
 
 @section('content')
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
-
     <main id="main" class="main">
 
         <div class="pagetitle">
@@ -52,23 +50,29 @@
                                         </div>
                                     </div>
                                     <br>
-
                                     <div class="row">
                                         <div class="col-lg-6">
                                             <label for="customer_code" class="col-sm-5 col-form-label">Kode Pelanggan:<span
                                                     style="color: red;">*</span></label>
                                         </div>
                                         <div class="col-lg-6">
-                                            <select id="customer_id" name="customer_id" class="select2" style="width: 100%;"
-                                                required>
-                                                <option value="" disabled selected></option>
-                                                @foreach ($customers as $customer)
-                                                    <option value="{{ $customer->id }}"
-                                                        data-name_customer="{{ $customer->name_customer }}"
-                                                        data-area="{{ $customer->area }}">{{ $customer->customer_code }}
-                                                    </option>
-                                                @endforeach
-                                            </select>
+                                            <div class="searchable-dropdown">
+                                                <input type="text" id="search_customer"
+                                                    placeholder="🔍 Search or select customer code"
+                                                    style="width: 100%; margin-bottom: 10px;">
+                                                <select id="customer_id" name="customer_id" class="form-control"
+                                                    style="width: 100%;" required>
+                                                    <option value="" disabled selected>🔍 Search or select customer
+                                                        code</option>
+                                                    @foreach ($customers as $customer)
+                                                        <option value="{{ $customer->id }}"
+                                                            data-name_customer="{{ $customer->name_customer }}"
+                                                            data-area="{{ $customer->area }}">
+                                                            {{ $customer->customer_code }}
+                                                        </option>
+                                                    @endforeach
+                                                </select>
+                                            </div>
                                         </div>
                                     </div>
                                     <br>
@@ -78,7 +82,7 @@
                                                     style="color: red;">*</span></label>
                                         </div>
                                         <div class="col-lg-6">
-                                            <select name="name_customer" class="select2" id="name_customer"
+                                            <select name="name_customer" class="form-control" id="name_customer"
                                                 style="width: 100%;" required disabled>
                                                 <option>🔍 Search or select customer</option>
                                                 @foreach ($customers as $customer)
@@ -96,7 +100,7 @@
                                                     style="color: red;">*</span></label>
                                         </div>
                                         <div class="col-lg-6">
-                                            <select name="area" class="select2" id="area" style="width: 100%"
+                                            <select name="area" class="form-control" id="area" style="width: 100%"
                                                 required disabled>
                                                 <option>🔍 Search or select area</option>
                                                 @foreach ($customers as $customer)
@@ -119,7 +123,8 @@
                                                 required>
                                                 <option value="">------------- Type Material ------------</option>
                                                 @foreach ($type_materials as $typematerial)
-                                                    <option value="{{ $typematerial->id }}">{{ $typematerial->type_name }}
+                                                    <option value="{{ $typematerial->id }}">
+                                                        {{ $typematerial->type_name }}
                                                     </option>
                                                 @endforeach
                                             </select>
@@ -323,6 +328,8 @@
                 </div>
             </div>
         </section>
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
         <script>
             document.getElementById('process_type').addEventListener('change', function() {
                 var dropdownValue = this.value;
@@ -338,7 +345,6 @@
             var imageError = document.getElementById('imageError');
             imageError.style.display = 'none';
 
-            // Fungsi untuk menampilkan modal saat gambar di klik
             // Fungsi untuk menampilkan modal saat gambar di klik
             function showModal(imageSrc) {
                 var modal = document.getElementById("imageModal");
@@ -398,19 +404,46 @@
             }
             //ddlselect
             document.addEventListener('DOMContentLoaded', function() {
-                // Ambil elemen-elemen yang diperlukan
-                var customerIdSelect = document.querySelector('select[name="customer_id"]');
-                var nameCustomerSelect = document.querySelector('select[name="name_customer"]');
-                var areaCustomerSelect = document.querySelector('select[name="area"]');
+                var searchCustomerInput = document.getElementById('search_customer');
+                var customerSelect = document.getElementById('customer_id');
+                var customerOptions = customerSelect.options;
 
-                // Tambahkan event listener untuk perubahan pada pilihan customer_id
-                customerIdSelect.addEventListener('change', function() {
-                    // Ambil opsi yang dipilih
-                    var selectedOption = customerIdSelect.options[customerIdSelect.selectedIndex];
+                var nameCustomerSelect = document.getElementById('name_customer');
+                var areaCustomerSelect = document.getElementById('area');
 
-                    // Set nilai name_customer dan area sesuai dengan data yang dipilih
-                    nameCustomerSelect.value = selectedOption.getAttribute('data-name_customer');
-                    areaCustomerSelect.value = selectedOption.getAttribute('data-area');
+                // Show the dropdown items when input is focused
+                searchCustomerInput.addEventListener('focus', function() {
+                    customerSelect.style.display = 'block';
+                });
+
+                // Hide the dropdown items when clicking outside
+                document.addEventListener('click', function(e) {
+                    if (!searchCustomerInput.contains(e.target) && !customerSelect.contains(e.target)) {
+                        customerSelect.style.display = 'none';
+                    }
+                });
+
+                // Filter the dropdown items based on input
+                searchCustomerInput.addEventListener('input', function() {
+                    var filter = searchCustomerInput.value.toLowerCase();
+                    for (var i = 1; i < customerOptions.length; i++) {
+                        var option = customerOptions[i];
+                        var text = option.text.toLowerCase();
+                        option.style.display = text.includes(filter) ? '' : 'none';
+                    }
+                });
+
+                // Set the input and update other selects when an item is selected
+                customerSelect.addEventListener('change', function() {
+                    var selectedOption = customerSelect.options[customerSelect.selectedIndex];
+
+                    searchCustomerInput.value = selectedOption.text;
+
+                    var selectedNameCustomer = selectedOption.getAttribute('data-name_customer');
+                    var selectedArea = selectedOption.getAttribute('data-area');
+
+                    nameCustomerSelect.value = selectedNameCustomer;
+                    areaCustomerSelect.value = selectedArea;
                 });
             });
 
@@ -457,11 +490,6 @@
                 validateCreate();
             });
 
-            $(document).ready(function() {
-                $('select').selectize({
-                    sortField: 'text'
-                });
-            });
 
             function hanyaAngka(evt) {
                 // Mendapatkan karakter yang ditekan

@@ -1084,9 +1084,9 @@
 
             // searchdropdown
             // Inisialisasi Select2 pada semua dropdown dengan class "select2"
-            $(document).ready(function() {
-                $('.select2').select2();
-            });
+            // $(document).ready(function() {
+            //     $('.select2').select2();
+            // });
 
             //backButonDeptMan
             function goToSubmission() {
@@ -1096,9 +1096,9 @@
 
             // searchdropdown
             // Inisialisasi Select2 pada semua dropdown dengan class "select2"
-            $(document).ready(function() {
-                $('.select2').select2();
-            });
+            // $(document).ready(function() {
+            //     $('.select2').select2();
+            // });
         </script>
     @endif
     <style>
