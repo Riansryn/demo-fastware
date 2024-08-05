@@ -34,6 +34,8 @@
     <!-- Template Main CSS File -->
     <link href="{{ asset('assets/css/style.css') }}" rel="stylesheet">
 
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
+
     {{-- jadwal kunjungan calender --}}
     <link href="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.9.0/fullcalendar.min.css" rel="stylesheet" />
 
@@ -172,7 +174,7 @@
             {{-- Maintenance dan Handling --}}
             {{-- @if (Auth::user()->role_id == 1 || Auth::user()->role_id == 5 || Auth::user()->role_id == 8 || Auth::user()->role_id == 9 || Auth::user()->role_id == 14 || Auth::user()->role_id == 22 || Auth::user()->role_id == 30 || Auth::user()->role_id == 31 || Auth::user()->role_id == 42 || Auth::user()->role_id == 45 || Auth::user()->role_id == 51 || Auth::user()->role_id == 48) --}}
             @php
-                $acsrole = [1, 5, 8, 9, 14, 22, 30, 31, 42, 45, 51, 58];
+                $acsrole = [1, 5, 8, 9, 14, 22, 30, 31, 42, 45, 48, 51, 58];
             @endphp
             @if (in_array(Auth::user()->role_id, $acsrole))
                 <li class="nav-heading">Productions</li>
@@ -637,6 +639,12 @@
                     <a class="nav-link collapsed" href="{{ route('dashboardImportWO') }}">
                         <i class="bi bi-cloud-upload"></i>
                         <span>Import WO</span>
+                    </a>
+                </li><!-- End Profile Page Nav -->
+                <li class="nav-item">
+                    <a class="nav-link collapsed" href="{{ route('landingWO') }}">
+                        <i class="bi bi-cloud-upload"></i>
+                        <span>Landing WO</span>
                     </a>
                 </li><!-- End Profile Page Nav -->
             @endif
