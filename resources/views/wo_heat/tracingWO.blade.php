@@ -779,6 +779,43 @@
         <section class="section">
             <div class="row">
                 <div class="col-lg-12">
+                    <div>
+                        <div>
+                            <label>From:</label>
+                            <input type="date" id="fromDate">
+                            <label>To:</label>
+                            <input type="date" id="toDate">
+                            <button onclick="updateCards()">Filter</button>
+                        </div>
+                    </div>
+                    <div class="row mt-3" id="woCards">
+                        <!-- Cards will be dynamically updated here -->
+                        @foreach (['Draft', 'Ready', 'Finished', 'Cancelled'] as $status)
+                            <div class="col-xxl-3 col-md-6 mb-4">
+                                <div class="card info-card sales-card">
+                                    <div class="card-body">
+                                        <h5 class="card-title">{{ $status }}</h5>
+                                        <div class="d-flex align-items-center">
+                                            <div class="ps-3">
+                                                <h6>WO: <span
+                                                        id="{{ $status }}-wo">{{ $counts[$status]['wo'] ?? '0' }}</span>
+                                                </h6>
+                                                <h6>PCS: <span
+                                                        id="{{ $status }}-pcs">{{ $counts[$status]['pcs'] ?? '0' }}</span>
+                                                </h6>
+                                                <h6>KG: <span
+                                                        id="{{ $status }}-kg">{{ $counts[$status]['kg'] ?? '0' }}</span>
+                                                </h6>
+                                                <h6>Persentase: <span id="{{ $status }}-percentage">{{ $counts[$status]['percentage'] ?? '0' }}%</span></h6>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+                <div class="col-lg-12">
                     <div class="card">
                         <div class="card-body">
                             <h5 class="card-title text-center">Trace By Customer</h5>
@@ -945,9 +982,7 @@
                     </div>
                 </div>
             </div>
-
         </section>
-
         <section class="section">
             <div class="row">
                 <div class="col-lg-12">
@@ -1004,7 +1039,58 @@
             </div>
         </section>
 
+        <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+
+        <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/moment@2.29.1/min/moment.min.js"></script>
+        <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
         <script>
+            //Filter Tracing WO
+            function updateCards() {
+                const fromDateInput = document.getElementById('fromDate').value;
+                const toDateInput = document.getElementById('toDate').value;
+
+                // Format dates from YYYY-MM-DD to DD-MM
+                const fromDate = formatDate(fromDateInput);
+                const toDate = formatDate(toDateInput);
+
+                $.ajax({
+                    url: `{{ url('filter-wo') }}`, // Ensure this route URL is correct
+                    type: 'GET',
+                    data: {
+                        fromDate: fromDate,
+                        toDate: toDate
+                    },
+                    success: function(data) {
+                        const counts = data.counts;
+
+                        // Update each card with the returned counts
+                        for (let status in counts) {
+                            // Update text content for WO, PCS, KG
+                            document.getElementById(`${status}-wo`).textContent = counts[status]['wo'];
+                            document.getElementById(`${status}-pcs`).textContent = counts[status]['pcs'];
+                            document.getElementById(`${status}-kg`).textContent = counts[status]['kg'];
+
+                            // Update percentage
+                            const percentageElement = document.getElementById(`${status}-percentage`);
+                            const percentage = counts[status]['percentage'];
+                            percentageElement.textContent = `${percentage}%`;
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Error fetching data:', error);
+                        console.log('Response text:', xhr.responseText); // Log the raw response text
+                    }
+                });
+            }
+
+            function formatDate(dateString) {
+                if (!dateString) return '';
+                const parts = dateString.split('-');
+                return `${parts[2]}-${parts[1]}`; // Format as DD-MM
+            }
+            //end
+
+
             var globalData = {};
 
             $(document).ready(function() {

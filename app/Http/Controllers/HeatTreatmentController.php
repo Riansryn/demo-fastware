@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Jobs\ProcessExcelJob;
 use App\Models\HeatTreatment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -18,27 +17,100 @@ class HeatTreatmentController extends Controller
         return view('wo_heat.importWO', compact('heattreatments'))->with('i', (request()->input('page', 1) - 1) * 5);
     }
 
-    public function dashboardTracingWO()
+    public function filterWO(Request $request)
     {
-        return view('wo_heat.tracingWO');
+        $statuses = ['Draft', 'Ready', 'Finished', 'Cancelled'];
+        $counts = [];
+        $fromDate = $request->query('fromDate'); // Expecting format 'MM-DD'
+        $toDate = $request->query('toDate');     // Expecting format 'MM-DD'
+
+        if ($fromDate && $toDate) {
+            // Query to get total count of work orders within the date range
+            $totalCount = DB::table('wo_heat')
+                ->whereRaw('STR_TO_DATE(tgl_wo, "%d-%m") BETWEEN STR_TO_DATE(?, "%d-%m") AND STR_TO_DATE(?, "%d-%m")', [$fromDate, $toDate])
+                ->count();
+
+            // Raw SQL query to get counts and sums using STR_TO_DATE for date comparison
+            $results = DB::select('
+            SELECT 
+                status_wo,
+                COUNT(*) AS wo,
+                SUM(pcs) AS pcs,
+                SUM(kg) AS kg
+            FROM 
+                wo_heat
+            WHERE 
+                STR_TO_DATE(tgl_wo, "%d-%m") BETWEEN STR_TO_DATE(?, "%d-%m") AND STR_TO_DATE(?, "%d-%m")
+            GROUP BY 
+                status_wo
+        ', [$fromDate, $toDate]);
+
+            // Initialize the counts array for each status
+            foreach ($statuses as $status) {
+                $counts[$status] = [
+                    'wo' => 0,
+                    'pcs' => 0,
+                    'kg' => 0,
+                    'percentage' => 0,
+                ];
+            }
+
+            // Populate the counts array with results and calculate percentages
+            foreach ($results as $row) {
+                $counts[$row->status_wo] = [
+                    'wo' => $row->wo,
+                    'pcs' => $row->pcs,
+                    'kg' => $row->kg,
+                    'percentage' => $totalCount > 0 ? round(($row->wo / $totalCount) * 100, 2) : 0,
+                ];
+            }
+        } else {
+            \Log::warning('Date range is missing or incomplete.');
+
+            return response()->json(['error' => 'Please provide both fromDate and toDate.'], 400);
+        }
+
+        // Debugging: log the response
+        \Log::info('Counts:', ['counts' => $counts]);
+
+        return response()->json(['counts' => $counts]);
     }
 
-    // public function importWO(Request $request)
-    // {
-    //     $request->validate([
-    //         'excelFile' => 'required|mimes:xlsx,xls',
-    //     ]);
+    public function dashboardTracingWO(Request $request)
+    {
+        $statuses = ['Draft', 'Ready', 'Finished', 'Cancelled'];
+        $counts = [];
 
-    //     // Dapatkan jalur file sementara
-    //     $temporaryFilePath = $request->file('excelFile')->getRealPath();
+        // Base query without date filtering
+        $queryBase = HeatTreatment::query();
 
-    //     // Kirim pekerjaan pemrosesan dengan menggunakan jalur sementara
-    //     ProcessExcelJob::dispatch($temporaryFilePath);
+        // Get total number of WOs
+        $totalWo = $queryBase->count();
 
-    //     return back()->with('success', 'File is being processed.');
-    // }
+        // Initialize counts for each status
+        foreach ($statuses as $status) {
+            // Clone base query to apply status filter
+            $filteredQuery = clone $queryBase;
+            $woCount = $filteredQuery->where('status_wo', $status)->count();
+            $counts[$status] = [
+                'wo' => $woCount,
+                'pcs' => $filteredQuery->sum('pcs'),
+                'kg' => $filteredQuery->sum('kg'),
+                'percentage' => $totalWo > 0 ? round(($woCount / $totalWo) * 100, 2) : 0,
+            ];
+        }
 
-    // Controller Method
+        // Check if the request is an AJAX request
+        if ($request->ajax()) {
+            return response()->json([
+                'counts' => $counts,
+                'totalWo' => $totalWo,
+            ]);
+        }
+
+        // Pass data to the view
+        return view('wo_heat.tracingWO', compact('counts', 'totalWo'));
+    }
 
     public function WOHeat(Request $request)
     {
