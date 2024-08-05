@@ -8,6 +8,7 @@ use App\Models\KmLihatBuku;
 use App\Models\KmPengajuan;
 use App\Models\KmSuka;
 use App\Models\KmTransaksi;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -320,6 +321,22 @@ class KmPengajuanController extends Controller
         $id_km_pengajuan = $request->input('id_km_pengajuan');
         $user_id = Auth::id(); // Assuming the user is authenticated
 
+        // Fetch the pengajuan and its associated category
+        $kmPengajuan = KmPengajuan::find($id_km_pengajuan);
+
+        if (!$kmPengajuan) {
+            return response()->json(['success' => false, 'message' => 'Pengajuan not found.']);
+        }
+
+        // Assuming KmPengajuan has a 'kmKategori' relationship
+        $kategori = $kmPengajuan->kmKategori;
+
+        if (!$kategori) {
+            return response()->json(['success' => false, 'message' => 'Category not found.']);
+        }
+
+        $poin_kategori = $kategori->poin_kategori;
+
         // Find the existing KmTransaksi record
         $kmTransaksi = KmTransaksi::where('id_km_pengajuan', $id_km_pengajuan)
                                   ->where('id_user', $user_id)
@@ -331,12 +348,10 @@ class KmPengajuanController extends Controller
             $kmTransaksi->modified_by = $user_id;
             $kmTransaksi->save();
         } else {
-            // Optionally handle the case where the record does not exist
-            // For now, we'll just create a new record as a fallback
+            // Create a new record
             $kmTransaksi = new KmTransaksi();
             $kmTransaksi->id_km_pengajuan = $id_km_pengajuan;
             $kmTransaksi->id_user = $user_id;
-            $kmTransaksi->poin = 0; // Set default point or calculate based on your logic
             $kmTransaksi->level = 0; // Set default level or calculate based on your logic
             $kmTransaksi->status = 3; // Status indicating that the PDF was read
             $kmTransaksi->modified_by = $user_id;
@@ -344,6 +359,11 @@ class KmPengajuanController extends Controller
             // Save the new record to the database
             $kmTransaksi->save();
         }
+
+        // Update the user's total points
+        $user = User::find($user_id);
+        $user->km_total_poin += $poin_kategori;
+        $user->save();
 
         return response()->json(['success' => true]);
     }

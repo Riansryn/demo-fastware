@@ -12,6 +12,7 @@ class KmKategori extends Model
 
     protected $fillable = [
         'nama_kategori',
+        'poin_kategori',
     ];
 
     // Relasi dengan KmTransaksi

@@ -31,6 +31,7 @@ class User extends Authenticatable
         'pass',
         'email',
         'telp',
+        'km_total_poin',
         'is_active',
     ];
 

@@ -332,8 +332,10 @@
                                             <div id="pdfViewerContainer{{ $pengajuan->id }}"></div>
                                         </div>
                                         <div class="modal-footer">
-                                            <button type="button" class="btn btn-primary"
-                                                onclick="confirmFinish({{ $pengajuan->id }})">Selesai</button>
+                                            @if ($pengajuan->kmTransaksi->isNotEmpty() && $pengajuan->kmTransaksi->first()->status !== 3)
+                                                <button type="button" class="btn btn-primary"
+                                                    onclick="confirmFinish({{ $pengajuan->id }})">Selesai</button>
+                                            @endif
                                             <button type="button" class="btn btn-secondary" data-dismiss="modal"
                                                 onclick="reloadPage()">Tutup</button>
                                         </div>

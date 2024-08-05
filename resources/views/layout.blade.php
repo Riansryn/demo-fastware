@@ -60,7 +60,7 @@
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow profile mt-3">
                         <li class="dropdown-header">
-                            <h6>{{ Auth::user()->name }}</h6>
+                            <h6>{{ Auth::user()->name }} - {{ Auth::user()->km_total_poin}} Poin</h6>
                             <span>{{ Auth::user()->roles->role }}</span>
                         </li>
                         <li>
