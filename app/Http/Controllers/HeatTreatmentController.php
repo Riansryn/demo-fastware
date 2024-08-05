@@ -21,31 +21,18 @@ class HeatTreatmentController extends Controller
     {
         $statuses = ['Draft', 'Ready', 'Finished', 'Cancelled'];
         $counts = [];
-        $fromDate = $request->query('fromDate'); // Mengharapkan format 'MM-DD' atau 'MM-DD-YYYY'
-        $toDate = $request->query('toDate');     // Mengharapkan format 'MM-DD' atau 'MM-DD-YYYY'
+        $fromDate = $request->query('fromDate'); // Expecting format 'MM-DD'
+        $toDate = $request->query('toDate');     // Expecting format 'MM-DD'
 
         if ($fromDate && $toDate) {
-            // Konversi tanggal input ke format database yang diharapkan 'YYYY-MM-DD'
-            // Menggunakan tahun saat ini jika hanya bulan dan hari yang diberikan
-            $currentYear = date('Y');
-
-            // Tambahkan tahun saat ini jika tahun tidak disertakan
-            if (strlen($fromDate) == 5) {
-                $fromDate = "$currentYear-$fromDate";
-            }
-
-            if (strlen($toDate) == 5) {
-                $toDate = "$currentYear-$toDate";
-            }
-
-            // Query untuk mendapatkan jumlah total work order dalam rentang tanggal
+            // Query to get total count of work orders within the date range
             $totalCount = DB::table('wo_heat')
-                ->whereBetween('tgl_wo', [$fromDate, $toDate])
+                ->whereRaw('STR_TO_DATE(tgl_wo, "%d-%m") BETWEEN STR_TO_DATE(?, "%d-%m") AND STR_TO_DATE(?, "%d-%m")', [$fromDate, $toDate])
                 ->count();
 
-            // Query SQL untuk mendapatkan jumlah dan total
-            $results = DB::select(
-                'SELECT 
+            // Raw SQL query to get counts and sums using STR_TO_DATE for date comparison
+            $results = DB::select('
+            SELECT 
                 status_wo,
                 COUNT(*) AS wo,
                 SUM(pcs) AS pcs,
@@ -53,13 +40,12 @@ class HeatTreatmentController extends Controller
             FROM 
                 wo_heat
             WHERE 
-                tgl_wo BETWEEN ? AND ?
+                STR_TO_DATE(tgl_wo, "%d-%m") BETWEEN STR_TO_DATE(?, "%d-%m") AND STR_TO_DATE(?, "%d-%m")
             GROUP BY 
-                status_wo',
-                [$fromDate, $toDate]
-            );
+                status_wo
+        ', [$fromDate, $toDate]);
 
-            // Inisialisasi array counts untuk setiap status
+            // Initialize the counts array for each status
             foreach ($statuses as $status) {
                 $counts[$status] = [
                     'wo' => 0,
@@ -69,7 +55,7 @@ class HeatTreatmentController extends Controller
                 ];
             }
 
-            // Isi array counts dengan hasil dan hitung persentase
+            // Populate the counts array with results and calculate percentages
             foreach ($results as $row) {
                 $counts[$row->status_wo] = [
                     'wo' => $row->wo,
@@ -79,12 +65,12 @@ class HeatTreatmentController extends Controller
                 ];
             }
         } else {
-            \Log::warning('Rentang tanggal hilang atau tidak lengkap.');
+            \Log::warning('Date range is missing or incomplete.');
 
-            return response()->json(['error' => 'Harap berikan both fromDate dan toDate.'], 400);
+            return response()->json(['error' => 'Please provide both fromDate and toDate.'], 400);
         }
 
-        // Debugging: log respon
+        // Debugging: log the response
         \Log::info('Counts:', ['counts' => $counts]);
 
         return response()->json(['counts' => $counts]);
