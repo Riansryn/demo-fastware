@@ -104,6 +104,7 @@
                                         <label for="editPosisi" class="form-label">Bagian</label>
                                         <select id="editPosisi" name="posisi" class="form-select">
                                             <option value="">----- Pilih Bagian -----</option>
+                                            <option value="HR">HR</option>
                                             <option value="Dept. Head">Dept. Head</option>
                                             <option value="Sec. Head">Sec. Head</option>
                                             <option value="All Employee">All Employee</option>
