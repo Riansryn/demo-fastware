@@ -60,7 +60,7 @@
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow profile mt-3">
                         <li class="dropdown-header">
-                            <h6>{{ Auth::user()->name }} - {{ Auth::user()->km_total_poin}} Poin</h6>
+                            <h6>{{ Auth::user()->name }} - {{ Auth::user()->km_total_poin }} Poin</h6>
                             <span>{{ Auth::user()->roles->role }}</span>
                         </li>
                         <li>
@@ -560,33 +560,71 @@
                     </li>
                 @endif
             </ul>
-            <ul id="nav-km-pic" class="nav-content collapse " data-bs-parent="#sidebar-nav">
-                @if (Auth::user()->role_id == 1 ||
-                        Auth::user()->role_id == 5 ||
-                        Auth::user()->role_id == 14 ||
-                        Auth::user()->role_id == 15)
+            @php
+                $acsrole = [1, 4, 5, 8, 10, 13, 16, 19, 20, 23, 25, 27]; // Roles for accessing Technical Competency Management
+            @endphp
+            @if (in_array(Auth::user()->role_id, $acsrole))
+                <li class="nav-heading">Technical Competency</li>
+                <a class="nav-link collapsed" data-bs-target="#nav-tech-competency" data-bs-toggle="collapse"
+                    href="#">
+                    <i class="bi bi-tools"></i><span>Technical Competency</span><i
+                        class="bi bi-chevron-down ms-auto"></i>
+                </a>
+            @endif
+            <ul id="nav-tech-competency" class="nav-content collapse " data-bs-parent="#sidebar-nav">
+                @if (in_array(Auth::user()->role_id, $acsrole))
                     <li class="nav-item">
-                        <a class="nav-link collapsed" href="#">
-                            <i class="bi-person-lines-fill fs-6"></i>
-                            <span>E-Book Knowledge Management</span>
+                        <a class="nav-link collapsed" data-bs-toggle="collapse" href="#formSubsectionOne">
+                            <i class="bi bi-file-earmark-text fs-6"></i>
+                            <span>Forms</span>
+                            <i class="bi bi-chevron-down ms-auto"></i>
                         </a>
+                        <ul id="formSubsectionOne" class="nav-content collapse"
+                            data-bs-parent="#nav-tech-competency">
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ route('jobShow') }}">
+                                    <i class="bi bi-file-earmark-code fs-6"></i>
+                                    <span>Form Job Posisi</span>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="">
+                                    <i class="bi bi-file-earmark-check fs-6"></i>
+                                    <span>Form Poin Standarisasi</span>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="">
+                                    <i class="bi bi-file-earmark-check fs-6"></i>
+                                    <span>Form Technical Competency</span>
+                                </a>
+                            </li>
+                        </ul>
                     </li>
-                @endif
-                @if (Auth::user()->role_id == 1 ||
-                        Auth::user()->role_id == 14 ||
-                        Auth::user()->role_id == 15 ||
-                        Auth::user()->role_id == 16 ||
-                        Auth::user()->role_id == 20)
                     <li class="nav-item">
-                        <a class="nav-link collapsed" href="#">
-                            <i class="bi-person-lines-fill fs-6"></i>
-                            <span>-</span>
+                        <a class="nav-link collapsed" data-bs-toggle="collapse" href="#evaluationSubsectionTwo">
+                            <i class="bi bi-check-circle-fill fs-6"></i>
+                            <span>Penilaian</span>
+                            <i class="bi bi-chevron-down ms-auto"></i>
                         </a>
+                        <ul id="evaluationSubsectionTwo" class="nav-content collapse"
+                            data-bs-parent="#nav-tech-competency">
+                            <li class="nav-item">
+                                <a class="nav-link" href="">
+                                    <i class="bi bi-check-circle-fill fs-6"></i>
+                                    <span>Penilaian Technical Competency by Sec. Head</span>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="">
+                                    <i class="bi bi-check-circle-fill fs-6"></i>
+                                    <span>Penilaian Technical Competency by Dept. Head</span>
+                                </a>
+                            </li>
+                        </ul>
                     </li>
                 @endif
             </ul>
-
-
             @if (Auth::user()->role_id == 1)
                 <li class="nav-heading">Safety Patrol</li>
                 <li class="nav-item">
@@ -639,12 +677,6 @@
                     <a class="nav-link collapsed" href="{{ route('dashboardImportWO') }}">
                         <i class="bi bi-cloud-upload"></i>
                         <span>Import WO</span>
-                    </a>
-                </li><!-- End Profile Page Nav -->
-                <li class="nav-item">
-                    <a class="nav-link collapsed" href="{{ route('landingWO') }}">
-                        <i class="bi bi-cloud-upload"></i>
-                        <span>Landing WO</span>
                     </a>
                 </li><!-- End Profile Page Nav -->
             @endif
