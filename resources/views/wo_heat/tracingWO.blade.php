@@ -806,7 +806,9 @@
                                                 <h6>KG: <span
                                                         id="{{ $status }}-kg">{{ $counts[$status]['kg'] ?? '0' }}</span>
                                                 </h6>
-                                                <h6>Persentase: <span id="{{ $status }}-percentage">{{ $counts[$status]['percentage'] ?? '0' }}%</span></h6>
+                                                <h6>Persentase: <span
+                                                        id="{{ $status }}-percentage">{{ $counts[$status]['percentage'] ?? '0' }}%</span>
+                                                </h6>
                                             </div>
                                         </div>
                                     </div>
@@ -1049,7 +1051,7 @@
                 const fromDateInput = document.getElementById('fromDate').value;
                 const toDateInput = document.getElementById('toDate').value;
 
-                // Format dates from YYYY-MM-DD to DD-MM
+                // Format dates from YYYY-MM-DD to DD-MM-YY
                 const fromDate = formatDate(fromDateInput);
                 const toDate = formatDate(toDateInput);
 
@@ -1086,7 +1088,8 @@
             function formatDate(dateString) {
                 if (!dateString) return '';
                 const parts = dateString.split('-');
-                return `${parts[2]}-${parts[1]}`; // Format as DD-MM
+                const year = parts[0].slice(-2); // Get the last two digits of the year
+                return `${parts[2]}-${parts[1]}-${year}`; // Format as DD-MM-YY
             }
             //end
 

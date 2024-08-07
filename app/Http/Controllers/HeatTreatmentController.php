@@ -21,30 +21,42 @@ class HeatTreatmentController extends Controller
     {
         $statuses = ['Draft', 'Ready', 'Finished', 'Cancelled'];
         $counts = [];
-        $fromDate = $request->query('fromDate'); // Expecting format 'MM-DD'
-        $toDate = $request->query('toDate');     // Expecting format 'MM-DD'
-
+        $fromDate = $request->query('fromDate'); // Expecting format 'd-m-y'
+        $toDate = $request->query('toDate');     // Expecting format 'd-m-y'
+    
+        // Log the incoming date formats
+        \Log::info('Incoming Dates:', ['fromDate' => $fromDate, 'toDate' => $toDate]);
+    
         if ($fromDate && $toDate) {
+            try {
+                // Convert input dates from 'd-m-y' to 'Y-m-d' for comparison
+                $fromDateConverted = \Carbon\Carbon::createFromFormat('d-m-y', $fromDate)->format('Y-m-d');
+                $toDateConverted = \Carbon\Carbon::createFromFormat('d-m-y', $toDate)->format('Y-m-d');
+            } catch (\Carbon\Exceptions\InvalidFormatException $e) {
+                \Log::error('Date format error: ', ['fromDate' => $fromDate, 'toDate' => $toDate, 'exception' => $e->getMessage()]);
+                return response()->json(['error' => 'Invalid date format provided. Please use d-m-y format.'], 400);
+            }
+    
             // Query to get total count of work orders within the date range
             $totalCount = DB::table('wo_heat')
-                ->whereRaw('STR_TO_DATE(tgl_wo, "%d-%m") BETWEEN STR_TO_DATE(?, "%d-%m") AND STR_TO_DATE(?, "%d-%m")', [$fromDate, $toDate])
+                ->whereRaw('STR_TO_DATE(tgl_wo, "%Y-%m-%d") BETWEEN ? AND ?', [$fromDateConverted, $toDateConverted])
                 ->count();
-
-            // Raw SQL query to get counts and sums using STR_TO_DATE for date comparison
+    
+            // Raw SQL query to get counts and sums using converted dates for date comparison
             $results = DB::select('
-            SELECT 
-                status_wo,
-                COUNT(*) AS wo,
-                SUM(pcs) AS pcs,
-                SUM(kg) AS kg
-            FROM 
-                wo_heat
-            WHERE 
-                STR_TO_DATE(tgl_wo, "%d-%m") BETWEEN STR_TO_DATE(?, "%d-%m") AND STR_TO_DATE(?, "%d-%m")
-            GROUP BY 
-                status_wo
-        ', [$fromDate, $toDate]);
-
+                SELECT 
+                    status_wo,
+                    COUNT(*) AS wo,
+                    SUM(pcs) AS pcs,
+                    SUM(kg) AS kg
+                FROM 
+                    wo_heat
+                WHERE 
+                    STR_TO_DATE(tgl_wo, "%Y-%m-%d") BETWEEN ? AND ?
+                GROUP BY 
+                    status_wo
+            ', [$fromDateConverted, $toDateConverted]);
+    
             // Initialize the counts array for each status
             foreach ($statuses as $status) {
                 $counts[$status] = [
@@ -54,7 +66,7 @@ class HeatTreatmentController extends Controller
                     'percentage' => 0,
                 ];
             }
-
+    
             // Populate the counts array with results and calculate percentages
             foreach ($results as $row) {
                 $counts[$row->status_wo] = [
@@ -66,13 +78,13 @@ class HeatTreatmentController extends Controller
             }
         } else {
             \Log::warning('Date range is missing or incomplete.');
-
+    
             return response()->json(['error' => 'Please provide both fromDate and toDate.'], 400);
         }
-
+    
         // Debugging: log the response
         \Log::info('Counts:', ['counts' => $counts]);
-
+    
         return response()->json(['counts' => $counts]);
     }
 
