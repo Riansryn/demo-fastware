@@ -214,12 +214,19 @@ class KmPengajuanController extends Controller
         $km->posisi = $request->posisi;
         $km->id_km_kategori = $request->id_km_kategori;
 
+        // Debug: Log request data
+        \Log::info('Request Data:', $request->all());
+
         // Set status berdasarkan tombol yang diklik
         if ($request->has('approve')) {
             $km->status = 3; // Disetujui
             $km->persetujuan = 2; // Disetujui
+            \Log::info('Approved KM:', ['id' => $request->id]);
         } elseif ($request->has('reject')) {
             $km->status = 1; // Ditolak
+            \Log::info('Rejected KM:', ['id' => $request->id]);
+        } else {
+            \Log::info('No Action Taken:', ['id' => $request->id]);
         }
 
         // Simpan perubahan ke database

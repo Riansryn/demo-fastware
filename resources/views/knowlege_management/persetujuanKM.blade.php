@@ -170,7 +170,7 @@
                         var kategoriSelect = $('#editKategori');
                         kategoriSelect.empty(); // Kosongkan dropdown
                         kategoriSelect.append(
-                        '<option value="">----- Pilih Kategori -----</option>'); // Tambahkan opsi default
+                            '<option value="">----- Pilih Kategori -----</option>'); // Tambahkan opsi default
                         $.each(data.kategoris, function(index, kategori) {
                             kategoriSelect.append(
                                 $('<option>', {

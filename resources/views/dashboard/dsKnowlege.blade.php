@@ -116,9 +116,8 @@
     <main id="main" class="main">
         <section class="section dashboard">
             <div class="row">
-                <h3 style="display: flex; justify-content: center;">Dashboard Knowledge</h3>
+                {{-- <h3 style="display: flex; justify-content: center;">Dashboard Knowledge</h3> --}}
                 <!-- Left side columns -->
-
                 <!-- Responsive Image -->
                 <div class="responsive-image-container">
                     <img src="assets/img/KmAdasi.png" class="img-fluid" alt="Responsive Image">
@@ -223,13 +222,13 @@
                                                         @endphp
                                                         @if ($transaksi->status == 1)
                                                             <span style="color: green; font-weight: bold;">Status: Belum
-                                                                Dibaca</span>
+                                                                Dibaca </span>
                                                         @elseif ($transaksi->status == 2)
                                                             <span style="color: red; font-weight: bold;">Status: Sedang
-                                                                Dibaca</span>
+                                                                Dibaca </span>
                                                         @elseif ($transaksi->status == 3)
                                                             <span style="color: blue; font-weight: bold;">Status: Selesai
-                                                                Dibaca</span>
+                                                                Dibaca </span>
                                                         @else
                                                             <span style="font-weight: bold;">Status: Tidak Diketahui</span>
                                                         @endif
