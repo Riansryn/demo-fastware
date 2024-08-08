@@ -241,6 +241,11 @@
                                             </h5>
                                         </div>
                                         <div class="mt-auto d-flex justify-content-end w-100">
+                                            <!-- Tombol untuk menampilkan modal keterangan -->
+                                            <button type="button" class="btn btn-secondary" data-toggle="modal"
+                                                data-target="#keteranganModal{{ $pengajuan->id }}">
+                                                Lihat Sinopsis
+                                            </button>
                                             <form id="markAsReadForm{{ $pengajuan->id }}"
                                                 action="{{ route('kmTransaksi.markAsRead') }}" method="POST">
                                                 @csrf
@@ -272,6 +277,29 @@
                                 </div>
                             </div>
 
+                            <!-- Modal untuk menampilkan keterangan -->
+                            <div class="modal fade" id="keteranganModal{{ $pengajuan->id }}" tabindex="-1" role="dialog"
+                                aria-labelledby="keteranganModalLabel{{ $pengajuan->id }}" aria-hidden="true">
+                                <div class="modal-dialog modal-lg" role="document">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title" id="keteranganModalLabel{{ $pengajuan->id }}">
+                                                Keterangan</h5>
+                                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                <span aria-hidden="true">&times;</span>
+                                            </button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <textarea class="form-control" rows="10" readonly>{{ $pengajuan->keterangan }}</textarea>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary"
+                                                data-dismiss="modal">Tutup</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
                             <!-- Insight Modal -->
                             <div class="modal fade" id="insightModal{{ $pengajuan->id }}" tabindex="-1" role="dialog"
                                 aria-labelledby="insightModalLabel{{ $pengajuan->id }}" aria-hidden="true">
@@ -281,7 +309,8 @@
                                             <h5 class="modal-title" id="insightModalLabel{{ $pengajuan->id }}">Insights
                                                 for
                                                 {{ $pengajuan->judul }}</h5>
-                                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                            <button type="button" class="close" data-dismiss="modal"
+                                                aria-label="Close">
                                                 <span aria-hidden="true">&times;</span>
                                             </button>
                                         </div>
@@ -302,7 +331,8 @@
                                             <!-- Form to add new insight -->
                                             <form action="{{ route('insights.add') }}" method="POST" class="mb-4">
                                                 @csrf
-                                                <input type="hidden" name="id_km_pengajuan" value="{{ $pengajuan->id }}">
+                                                <input type="hidden" name="id_km_pengajuan"
+                                                    value="{{ $pengajuan->id }}">
                                                 <div class="form-group">
                                                     <label for="insightContent{{ $pengajuan->id }}">Add Insight</label>
                                                     <textarea class="form-control" id="insightContent{{ $pengajuan->id }}" name="content" rows="3" required></textarea>
