@@ -34,8 +34,6 @@
     <!-- Template Main CSS File -->
     <link href="{{ asset('assets/css/style.css') }}" rel="stylesheet">
 
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
-
     {{-- jadwal kunjungan calender --}}
     <link href="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.9.0/fullcalendar.min.css" rel="stylesheet" />
 
@@ -560,7 +558,7 @@
                     </li>
                 @endif
             </ul>
-            @php
+            {{-- @php
                 $acsrole = [1, 4, 5, 8, 10, 13, 16, 19, 20, 23, 25, 27]; // Roles for accessing Technical Competency Management
             @endphp
             @if (in_array(Auth::user()->role_id, $acsrole))
@@ -594,7 +592,7 @@
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" href="">
+                                <a class="nav-link" href="{{route ('tcShow')}}">
                                     <i class="bi bi-file-earmark-check fs-6"></i>
                                     <span>Form Technical Competency</span>
                                 </a>
@@ -624,7 +622,7 @@
                         </ul>
                     </li>
                 @endif
-            </ul>
+            </ul> --}}
             @if (Auth::user()->role_id == 1)
                 <li class="nav-heading">Safety Patrol</li>
                 <li class="nav-item">
